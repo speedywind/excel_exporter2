@@ -6,6 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import time
+import re
 
 from log import debug
 
@@ -25,9 +26,15 @@ filename = "watergun"
 sheetname = "watergun"
 
 
+def MatchInList(l, name):
+    for e in l:
+        if re.match(e, name):
+            return True
+    return False
+
+
 def IsMyInt0(name):
     '''
-
     售价相关 具体对应货币由表内容决定
     ├─ price 购买价格
     └─ sell 出售价格
@@ -35,24 +42,7 @@ def IsMyInt0(name):
     levelvariation 地图等级变化，影响到地图属性
     jump 事件及对白跳转
     '''
-    return name == "attack" \
-        or name == "defence" \
-        or name == "maxhp" \
-        or name == "target" \
-        or name == "price" \
-        or name == "sell" \
-        or name == "islevelup" \
-        or name == "eyesee" \
-        or name == "skill" \
-        or name == "skilllevel" \
-        or name == "enemylv" \
-        or name == "limit" \
-        or name == "unlock" \
-        or name == "weapon" \
-        or name == "weapontype" \
-        or name == "unlockcluelevel" \
-        or name == "levelvariation" \
-        or name == "jump"
+    return MatchInList(config['IsMyInt0'], name)
 
 
 def IsMyInt(name):
@@ -68,39 +58,7 @@ def IsMyInt(name):
     star 星级
 
     '''
-    return name[-4:] == "type" \
-        or name == "targettype" \
-        or name[-5:] == "level" \
-        or name == "bulletset" \
-        or name == "bullet" \
-        or name == "watertank" \
-        or name == "star" \
-        or name == "feature" \
-        or name == "role" \
-        or name == "count" \
-        or name == "weight" \
-        or name == "counta" \
-        or name == "countb" \
-        or name == "rare" \
-        or name == "star" \
-        or name == "weightall" \
-        or name == "interval" \
-        or name == "raidlevel" \
-        or name == "layer" \
-        or name == "exp" \
-        or name == "gold" \
-        or name == "level" \
-        or name == "targetcount" \
-        or name == "rank" \
-        or name == "rank1" \
-        or name == "order" \
-        or name == "merlevel" \
-        or name == "score" \
-        or name == "grade" \
-        or name == "position" \
-        or name == "skip" \
-        or name == "rate" \
-        or name == "index"
+    return MatchInList(config['IsMyInt'], name)
 
 
 def IsMyString(name):
@@ -115,18 +73,7 @@ def IsMyString(name):
 
     manufacturer 厂商-厂商大致决定了武器的攻击趋向：暴击伤害类、吸血类、移速类等等
     '''
-    return name[-2:] == "id" \
-        or name == "condition" \
-        or name == "state" \
-        or name == "starttime" \
-        or name == "endtime" \
-        or name == "num" \
-        or name == "name" \
-        or name[-4:] == "desc" \
-        or name == "ccbi" \
-        or name == "content" \
-        or name == "img" \
-        or name == "manufacturer"
+    return MatchInList(config['IsMyString'], name)
 
 
 def IsMyFloat(name):
@@ -139,13 +86,7 @@ def IsMyFloat(name):
     speed 子弹速度
     attackspeed 攻速
     '''
-    return name == "watertankrecover" \
-        or name == "critrate" \
-        or name == "criteffect" \
-        or name == "bulletlife" \
-        or name == "movespeed" \
-        or name == "speed" \
-        or name == "attackspeed"
+    return MatchInList(config['IsMyFloat'], name)
 
 
 def IsMyStruct(name):
@@ -154,8 +95,7 @@ def IsMyStruct(name):
     enemy 敌人模块
     struct 通用结构
     '''
-    return name[:len("reward")] == "reward" \
-        or name[:len("struct")] == "struct"
+    return MatchInList(config['IsMyStruct'], name)
 
 
 def CheckMyStruct(fieldtype, fields):
@@ -166,6 +106,7 @@ def CheckMyStruct(fieldtype, fields):
                 break
             assert parse.find("itemid") in [0, len("string:"), len("default:")]\
                 or parse.find("count") in [0, len("int:"), len("float:"), len("default:")]\
+                or parse.find("rate") in [0, len("int:"), len("default:")]\
                 or parse.find("weight") in [0, len("int:"), len("float:"), len("default:")] or not parse,\
                 "Error[非法的数据结构]: near " + fieldtype + \
                 "\n" + str(nextfields + fields)
@@ -303,23 +244,22 @@ def CheckInt(data, args=None):
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
     vals = data.split('.')
-    assert len(vals) == 2 and vals[1] == "0", "Error[非法的整型]: found " + data + \
-        " near " + sheetname + filename + \
-        "(" + GetColNum(mycol) + str(myrow + 1) + ")"
+    assert len(vals) == 2 and vals[1] == "0", "Error[非法的整型]: found {} near {} {} ({}{})".format(
+        data, sheetname, filename, GetColNum(mycol), str(myrow + 1))
     return vals[0]
 
 
 def CheckBool(data, args=None):
     if len(data) == 0:
-        assert args, "Error[字段不能为空]: near " + sheetname + \
+        assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    return "0.0" == data and "false" or "true"
+    return ("0.0" == data or 'false' == data) and "false" or "true"
 
 
 def CheckFloat(data, args=None):
     if len(data) == 0:
-        assert args, "Error[字段不能为空]: near " + sheetname + \
+        assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
     return data
@@ -381,7 +321,9 @@ def GetColNum(col):
 def GetCols(parse):
     return str(parse).count('func') - str(parse).count('func\': \'' + TDefault) - str(parse).count('func\': \'' + TList) - str(parse).count('func\': \'' + TStruct)
 
-def CheckChunk(parses, sheet, row1, row2, col, indent, nodename):
+
+def CheckChunk(parses, sheet, row1, row2, col, indent):
+    indent = ""
     global sheetname
     global filename
     global myrow
@@ -389,17 +331,13 @@ def CheckChunk(parses, sheet, row1, row2, col, indent, nodename):
     global imglacks
     sheetname = sheet.name
     filename = GetValue(sheet, 0, 0)
-    luachunks = []
     jschunks = []
     jsonchunks = []
-    xmlchunks = []
     while row1 < row2:
         myrow = row1
         col1 = col
-        luachunk = []
         jschunk = []
         jsonchunk = []
-        xmlchunk = []
         majorkey = None
         newrow2 = GetNextRow(sheet, row1 + 1, row2, col)
         # print "parse row", row1, newrow2
@@ -412,18 +350,13 @@ def CheckChunk(parses, sheet, row1, row2, col, indent, nodename):
             if parse["func"] == TDefault:
                 assert parse["default"], "Error[无效的默认值]: near " + sheetname + \
                     filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
-                luachunk.append(key + " = " + parse["default"])
                 jschunk.append(key + ":" + parse["default"])
                 jsonchunk.append("\"" + key + "\":" + parse["default"])
-                xmlchunk.append(key + " = " + Quotes(parse["default"]))
                 continue
             elif parse["func"] == TInt:
                 val = CheckInt(field, parse["default"])
-                luachunk.append(key and key + " = " + val or val)
                 jschunk.append(key and key + ":" + val or val)
                 jsonchunk.append(key and "\"" + key + "\":" + val or val)
-                xmlchunk.append(key and key + " = " +
-                                Quotes(val) or Quotes(val))
                 if parse["default"] == "key":
                     assert not majorkey, "Error[重复的主键]: near " + sheetname + \
                         filename + "(" + GetColNum(mycol) + \
@@ -432,32 +365,22 @@ def CheckChunk(parses, sheet, row1, row2, col, indent, nodename):
                 col1 += 1
             elif parse["func"] == TBool:
                 value = CheckBool(field, parse["default"])
-                luachunk.append(key + " = " + value if key else value)
                 jschunk.append(key + " : " + value if key else value)
                 jsonchunk.append("\"" + key + "\":" + value if key else value)
-                xmlchunk.append(key + " = " + Quotes(value)
-                                if key else Quotes(value))
                 col1 += 1
             elif parse["func"] == TFloat:
                 value = CheckFloat(field, parse["default"])
-                luachunk.append(key and key + " = " + value or value)
                 jschunk.append(key and key + ":" + value or value)
                 jsonchunk.append(key and "\"" + key + "\":" + value or value)
-                xmlchunk.append(key and key + " = " +
-                                Quotes(value) or Quotes(value))
                 col1 += 1
             elif parse["func"] == TString:
                 val = CheckString(field, parse["default"])
                 if val != "\"\"" and key in ["img", "icon"]:
                     rval = val[1:-1]
                 if val != "\"\"" or not key in ["img", "ccbi", "starttime", "endtime"]:
-                    luachunk.append(key and key + " = " + val or val)
                     jschunk.append(key and key + ":" + val or val)
                     jsonchunk.append(key and "\"" + key +
                                      "\":" + Quotes(val) or Quotes(val))
-                if not key in ["img", "desc", "answer"]:
-                    xmlchunk.append(key and key + " = " + Quotes(CheckString(
-                        field, parse["default"])) or Quotes(CheckString(field, parse["default"])))
                 if parse["default"] == '"key"':
                     assert not majorkey, "Error[重复的主键]: near " + sheetname + \
                         filename + "(" + GetColNum(mycol) + \
@@ -468,58 +391,53 @@ def CheckChunk(parses, sheet, row1, row2, col, indent, nodename):
                 if not GetValue(sheet, row1, col1) and parse["args"][0]["default"] == None:
                     col1 += GetCols(parse["args"])
                 else:
-                    col1, lua, js, json, xml = CheckChunk(
-                        parse["args"], sheet, row1, newrow2, col1, indent, key and key or nodename)
-                    if lua[len(indent) + 1:len(indent) + 2] == "[":
-                        luachunk.append(lua)
+                    col1, js, json = CheckChunk(
+                        parse["args"], sheet, row1, newrow2, col1, indent)
+                    if json[len(indent) + 1:len(indent) + 2] == "[":
                         jschunk.append(js)
                         jsonchunk.append(json)
-                    elif lua:
-                        luachunk.append(
-                            key and key + " = {" + lua + "}" or "{" + lua + "}")
+                    elif json:
                         jschunk.append(
                             key and key + ":{" + js + "}" or "{" + js + "}")
                         jsonchunk.append(key and "\"" + key +
                                          "\":{" + json + "}" or "{" + json + "}")
-                    if xml != "" and (not (key and key or nodename) in ["increase", "states", "skill"]):
-                        xmlchunk.append((len(xmlchunk) > 0 and xmlchunk[len(
-                            xmlchunk) - 1][-1:] != ">") and ">" + xml or xml)
             elif parse["func"] == TList:
-                col1, lua, js, json, xml = CheckChunk(
-                    parse["args"], sheet, row1, newrow2, col1, indent + "  ", key)
-                if xml != "":
-                    xmlchunk.append((len(xmlchunk) > 0 and xmlchunk[len(
-                        xmlchunk) - 1][-1:] != ">") and ">" + xml or xml)
+                col1, js, json = CheckChunk(
+                    parse["args"], sheet, row1, newrow2, col1, indent + "  ",)
                 if parse["default"] == "key":
                     key = ValToKey(CheckInt(field))
-                luachunk.append("\n" + indent + "  " +
-                                key + " = {" + lua + "}")
                 jschunk.append("\n" + indent + "  " + key + ":[" + js + "]")
-                jsonchunk.append("\n" + indent + "  " +
-                                 "\"" + key + "\":[" + json + "]")
+                jsonchunk.append("\"" + key + "\":[" + json + "]")
             else:  # 跳过空字段
                 assert parse["func"] == None, "Error[非法的字段名]: near " + sheetname + \
                     filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
                 col1 += 1
             # print luachunk[len(luachunk)-1]
-        xml = " ".join(xmlchunk)
-        assert xml[-1:] == '"' or xml[-1:] == '>' or xml[-1:] == '', "A" + xml + "A"
-        if xml != "":
-            xmlchunks.append((xml[:1] == ">" or xml[:1] == "\n") and xml or "\n" + indent + "<" +
-                             nodename + " " + xml + (xml[-1:] == '"' and ">" or "") + "</" + nodename + ">")
         if majorkey:
-            luachunks.append(
-                "\n" + indent + "[" + majorkey + "]" + " = {" + ", ".join(luachunk) + "}")
             jschunks.append("\n" + indent + majorkey +
                             ":{" + ", ".join(jschunk) + "}")
-            jsonchunks.append("\n" + indent + Quotes(majorkey) +
+            jsonchunks.append(Quotes(majorkey) +
                               ":{" + ", ".join(jsonchunk) + "}")
-        elif len(luachunk) > 0:  # 列表比如{1,2,3}
-            luachunks.append(", ".join(luachunk))
+        elif len(jsonchunk) > 0:  # 列表比如{1,2,3}
             jschunks.append(", ".join(jschunk))
-            jsonchunks.append(", ".join(jsonchunk))
+            jsonchunks.append(",".join(jsonchunk))
         row1 = newrow2
-    return col1, ", ".join(luachunks), ", ".join(jschunks), ", ".join(jsonchunks), " ".join(xmlchunks)
+    return col1, ", ".join(jschunks), ",".join(jsonchunks)
+
+
+def ParseSheet(fields, conf):
+    global config
+    config = conf
+    return CheckParses(fields)
+
+
+def ProcessSheet(parses, sheet, row_start):
+    _, js, json = CheckChunk(
+        parses, sheet, row_start, sheet.nrows, 0, "")
+    return {
+        'js': '{' + js + '}',
+        'json': '{' + json + '}',
+    }
 
 
 def Quotes(val):

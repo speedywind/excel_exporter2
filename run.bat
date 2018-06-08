@@ -1,3 +1,3 @@
 call .\.env\Scripts\activate.bat
-python .\src\excel_exporter.py -d .\configuration\
+python -c .\src\check_config.json .\src\excel_exporter.py -d .\configuration\
 pause
