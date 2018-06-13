@@ -49,6 +49,7 @@ def py_encode_basestring(s):
 
 encode_basestring = (c_encode_basestring or py_encode_basestring)
 
+
 def py_encode_basestring_ascii(s):
     """Return an ASCII-only JSON representation of a Python string
 
@@ -58,7 +59,7 @@ def py_encode_basestring_ascii(s):
         try:
             return ESCAPE_DCT[s]
         except KeyError:
-            return s # 停止转义
+            return s  # 停止转义
             n = ord(s)
             if n < 0x10000:
                 return '\\u{0:04x}'.format(n)
@@ -367,16 +368,18 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
             # also allow them.  Many encoders seem to do something like this.
             elif isinstance(key, float):
                 # see comment for int/float in _make_iterencode
-                key = _floatstr(key)
+                # key = _floatstr(key)
+                pass
             elif key is True:
                 key = 'true'
             elif key is False:
                 key = 'false'
             elif key is None:
-                key = 'null'
+                continue  # lua中key不允许为空
             elif isinstance(key, int):
                 # see comment for int/float in _make_iterencode
-                key = _intstr(key)
+                # key = _intstr(key)
+                pass
             elif _skipkeys:
                 continue
             else:
@@ -385,7 +388,7 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
                 first = False
             else:
                 yield item_separator
-            yield '[' + _encoder(key) + ']'
+            yield _format_key(key)
             yield _key_separator
             if isinstance(value, str):
                 yield _encoder(value)
@@ -445,9 +448,29 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
             yield from _iterencode(o, _current_indent_level)
             if markers is not None:
                 del markers[markerid]
+
+    key_filter = re.compile("[^a-zA-Z_0-9]")
+    key_filter_equal = {"require", "false", "for", "function", "if", "nil", "not", "or", "while", "then",
+                        "true", "until", "end", "in", "local", "repeat", "return", "break", "do", "else", "and", "elseif"}
+
+    def _format_key(s):
+        if isinstance(s, (int, float)):
+            return '['+str(s)+']'
+        try:
+            int(s)
+            return '["'+s+'"]'
+        except Exception:
+            pass
+        for f in key_filter_equal:
+            if s == f:
+                return '["'+s+'"]'
+        if (ord(s[0]) >= ord("0") and ord(s[0]) <= ord("9")) or key_filter.search(s):
+            return '["'+s+'"]'
+        return s
     return _iterencode
 
 # from json.__init__.py
+
 
 _default_encoder = JSONEncoder(
     skipkeys=False,

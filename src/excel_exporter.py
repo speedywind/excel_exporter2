@@ -47,6 +47,8 @@ def export_workbook(workbook_path, check_config):
         sheetname = sheet.name
         if filename is '':
             continue
+        # if filename != 'package':
+        #     continue
         print("Exporting {} {} ......".format(sheetname, filename))
         sheetfields[filename] = ""
         for field in get_line(sheet, 1):
@@ -54,18 +56,13 @@ def export_workbook(workbook_path, check_config):
         parses = ParseSheet(get_line(sheet, 1), check_config)
         debug(parses)
         # 第三行内容
-        result = ProcessSheet(parses, sheet, 2)
-        ast = json.loads(result['json'])
+        result = {}
+        ast = ProcessSheet(parses, sheet, 2)
         # 在此进行文件内容的校验
         for file_type, conf in config.items():
             if not conf['enable']:
                 continue
-            if conf['native']:
-                if filename in conf['except_files']:
-                    continue
-            else:
-                # 非原生语言，从dict转换
-                result[file_type] = conf['convert_func'](ast)
+            result[file_type] = conf['convert_func'](ast)
             if 'file_structs' in conf:
                 result[file_type] = conf['file_structs'].format(
                     filename, result[file_type])
