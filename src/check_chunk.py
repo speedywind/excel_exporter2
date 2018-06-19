@@ -5,8 +5,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
 import os
-import time
 import re
+import time
 
 from log import debug
 
@@ -185,7 +185,7 @@ def ValToKey(val):
 def CheckMyStruct(fieldtype, fields):
     if fieldtype[:len("reward")] == "reward":
         nextfields = fieldtype[len("reward") + 1:-1].split(",")
-        for index, parse in enumerate(nextfields + fields):
+        for parse in (nextfields + fields):
             if TList == parse[:len(TList)] or TStruct == parse[:len(TStruct)] or IsMyStruct(parse) or TNextLevel == parse[:len(TNextLevel)]:
                 break
             assert parse.find("itemid") in [0, len("string:"), len("default:")]\
@@ -284,11 +284,17 @@ def GetColNum(col):
     return changeBase(col, 26)
 
 
-def GetCols(parse):
-    return str(parse).count('func') - str(parse).count('func\': \'' + TDefault) - str(parse).count('func\': \'' + TList) - str(parse).count('func\': \'' + TStruct)
+def GetCols(parses):
+    func_count = 0
+    for p in parses:
+        if p.func not in [TDefault, TList, TStruct]:
+            func_count += 1
+        if p.args:
+            func_count += GetCols(p.args)
+    return func_count
 
 
-def CheckChunk(parses, sheet, row1, row2, col, indent):
+def CheckChunk(parses, sheet, row1, row2, col):
     global sheetname
     global filename
     global myrow
@@ -304,7 +310,7 @@ def CheckChunk(parses, sheet, row1, row2, col, indent):
         majorkey = None
         newrow2 = GetNextRow(sheet, row1 + 1, row2, col)
         # print "parse row", row1, newrow2
-        for index, parse in enumerate(parses):
+        for parse in parses:
             mycol = col1
             field = parse.func == TDefault and parse.default or GetValue(
                 sheet, row1, col1)
@@ -334,8 +340,6 @@ def CheckChunk(parses, sheet, row1, row2, col, indent):
                 col1 += 1
             elif parse.func == TString:
                 val = CheckString(field, parse.default)
-                if val != "\"\"" and key in ["img", "icon"]:
-                    rval = val[1:-1]
                 if val != "\"\"" or not key in ["img", "ccbi", "starttime", "endtime"]:
                     pychunk.append(key and "\"" + key +
                                    "\":" + Quotes(val) or Quotes(val))
@@ -350,15 +354,15 @@ def CheckChunk(parses, sheet, row1, row2, col, indent):
                     col1 += GetCols(parse.args)
                 else:
                     col1, py = CheckChunk(
-                        parse.args, sheet, row1, newrow2, col1, indent)
-                    if py[len(indent) + 1:len(indent) + 2] == "[":
+                        parse.args, sheet, row1, newrow2, col1)
+                    if py[1:2] == "[":
                         pychunk.append(py)
                     elif py:
                         pychunk.append(key and "\"" + key +
                                        "\":{" + py + "}" or "{" + py + "}")
             elif parse.func == TList:
                 col1, py = CheckChunk(
-                    parse.args, sheet, row1, newrow2, col1, indent + "  ",)
+                    parse.args, sheet, row1, newrow2, col1,)
                 if parse.default == "key":
                     key = ValToKey(CheckInt(field))
                 pychunk.append("\"" + key + "\":[" + py + "]")
@@ -384,7 +388,7 @@ def ParseSheet(fields, conf):
 
 def ProcessSheet(parses, sheet, row_start):
     _, py = CheckChunk(
-        parses, sheet, row_start, sheet.nrows, 0, "")
+        parses, sheet, row_start, sheet.nrows, 0)
     py = "{"+py+"}"
     return eval(py)
 

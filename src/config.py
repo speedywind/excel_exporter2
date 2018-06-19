@@ -1,19 +1,19 @@
-import json
+from lua_table_dump import dumps as lua_dumps
+from json import dumps as json_dumps
 import dicttoxml
 from xml.dom.minidom import parseString
-from lua_table_dump import dumps
 
 config = {
     'lua': {
         'enable': True,
-        'convert_func': lambda d: dumps(d, indent=2),
+        'convert_func': lambda d: lua_dumps(d, indent=2),
         'format': False,
         'format_func': None,
         'file_structs': "-- {0}\nreturn {1}",
     },
     'json': {
-        'convert_func': lambda d: json.dumps(d, indent=2),
         'enable': False,
+        'convert_func': lambda d: json_dumps(d, indent=2),
         'format': False,
         'format_func': None
     },
