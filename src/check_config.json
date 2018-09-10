@@ -16,7 +16,9 @@
         "weapon",
         "weapontype",
         "unlockcluelevel",
+        "unlock_clue_level",
         "levelvariation",
+        "stamina",
         "jump"
     ],
     "IsMyInt": [

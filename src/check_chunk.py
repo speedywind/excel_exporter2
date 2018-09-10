@@ -236,7 +236,9 @@ def CheckString(data, args=None):
             return args
     elif data[-2:] == ".0":
         data = data[:-2]
-    return "\"" + data.replace("\n", "\\n") + "\""
+    data = data.replace("\n", "\\n")
+    data = data.replace('"', r'\"')
+    return '"' + data + '"'
 
 
 def GetValue(sheet, row, col):
@@ -340,14 +342,14 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 col1 += 1
             elif parse.func == TString:
                 val = CheckString(field, parse.default)
-                if val != "\"\"" or not key in ["img", "ccbi", "starttime", "endtime"]:
+                if val != '""':
                     pychunk.append(key and "\"" + key +
                                    "\":" + Quotes(val) or Quotes(val))
                 if parse.default == '"key"':
                     assert not majorkey, "Error[重复的主键]: near " + sheetname + \
                         filename + "(" + GetColNum(mycol) + \
                         str(myrow + 1) + ")"
-                    majorkey = "" + str(val) + ""
+                    majorkey = str(val)
                 col1 += 1
             elif parse.func == TStruct:
                 if not GetValue(sheet, row1, col1) and parse.args[0].default == None:
