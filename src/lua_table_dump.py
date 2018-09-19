@@ -62,15 +62,13 @@ def py_encode_basestring_ascii(s):
             # return s  # 停止转义
             n = ord(s)
             if n < 0x10000:
-                # return '\\u{0:04x}'.format(n)
-                return '\\x{0:02x}\\x{1:02x}'.format((n >> 8) & 0xFF, n & 0xFF)
+                return '\\u{{{0:04x}}}'.format(n)
             else:
                 # surrogate pair
                 n -= 0x10000
                 s1 = 0xd800 | ((n >> 10) & 0x3ff)
                 s2 = 0xdc00 | (n & 0x3ff)
-                # return '\\u{0:04x}\\u{1:04x}'.format(s1, s2)
-                return '\\x{0:02x}\\x{1:02x}\\x{2:02x}\\x{3:02x}'.format((s1 >> 8) & 0xFF, s1 & 0xFF, (s2 >> 8) & 0xFF, s2 & 0xFF)
+                return '\\u{{{0:04x}}}\\u{{{1:04x}}}'.format(s1, s2)
     return '"' + ESCAPE_ASCII.sub(replace, s) + '"'
 
 
