@@ -8,7 +8,9 @@ import os
 import re
 import time
 
-from log import debug
+from .log import debug
+
+config = None
 
 imglacks = {}
 TFileTag = "watergun"
@@ -60,15 +62,18 @@ class Parse():
         self.func = None
         self.name = None
 
+    def __repr__(self):
+        return "Parse(default='%s', args=%s, func='%s', name='%s')" % (self.default, self.args, self.func, self.name)
+
 
 def CheckParses(fields):
-    result = []
+    parses = []
     while len(fields) > 0:
         # print fields
         field = fields.pop(0)
         if not field:
             parse = Parse()
-            result.append(parse)
+            parses.append(parse)
             continue
         if TNextLevel == field[:len(TNextLevel)]:  # 父子
             field = field[len(TNextLevel):]
@@ -133,7 +138,7 @@ def CheckParses(fields):
             else:
                 print(fieldtype, name, parse)
                 assert not field, "Error[非法的字段名]: near " + \
-                    field + "\n" + str(result)
+                    field + "\n" + str(parses)
             endpos = len(fields)
             for m in range(0, endpos):
                 if len(fields[m]) != 0 and TInt != fields[m][:len(TInt)] and TBool != fields[m][:len(TBool)] \
@@ -144,7 +149,7 @@ def CheckParses(fields):
                     break
             # print endpos, nextfields + fields[0:endpos]
             assert TList != fieldtype[:len(TList)] or endpos == 0 or not fields[endpos - 1] or IsMyStruct(
-                nextfields[0]), "Error[list后请不要配一级字段]: near " + field + "\n" + str(result)
+                nextfields[0]), "Error[list后请不要配一级字段]: near " + field + "\n" + str(parses)
             parse.args = CheckParses(nextfields + fields[:endpos])
             parse1 = parse.args.pop()
             if parse1.func == TStruct:
@@ -163,19 +168,19 @@ def CheckParses(fields):
                 parse.args.append(parse1)
             # print parse
             fields = fields[endpos:]
-        # if len(result) > 0:
-        # 	print parse," += ",result[len(result)-1]
-        if len(result) > 0 and parse.func == TList and parse.name == result[len(result) - 1].name:
-            # and (parse.args == result[len(result)-1].args or (type(result[len(result)-1].args) is list \
-            # and parse.args == result[len(result)-1].args[:1])): #同级合并
-            parse.args += result[len(result) - 1].args
-            result.pop()
-        for index, parse1 in enumerate(result):
+        # if len(parses) > 0:
+        # 	print parse," += ",parses[len(parses)-1]
+        if len(parses) > 0 and parse.func == TList and parse.name == parses[len(parses) - 1].name:
+            # and (parse.args == parses[len(parses)-1].args or (type(parses[len(parses)-1].args) is list \
+            # and parse.args == parses[len(parses)-1].args[:1])): #同级合并
+            parse.args += parses[len(parses) - 1].args
+            parses.pop()
+        for index, parse1 in enumerate(parses):
             assert parse.name != parse1.name, "Error[重复的字段]: near " + \
-                field + "\n" + str(result)
-        result.append(parse)
-    # print result
-    return result
+                field + "\n" + str(parses)
+        parses.append(parse)
+    # print parses
+    return parses
 
 
 def ValToKey(val):
@@ -314,6 +319,9 @@ def CheckChunk(parses, sheet, row1, row2, col):
         # print "parse row", row1, newrow2
         for parse in parses:
             mycol = col1
+            if parse == None:
+                col1 += 1
+                continue
             field = parse.func == TDefault and parse.default or GetValue(
                 sheet, row1, col1)
             key = parse.name

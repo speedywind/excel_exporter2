@@ -15,3 +15,7 @@ def set_debug_mode(value):
 def debug(vals):
     if _isdebug:
         print(vals)
+
+
+def info(vals):
+    print(vals)

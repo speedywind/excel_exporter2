@@ -1,6 +1,6 @@
 # from json.encoder.py
 
-"""Implementation of JSONEncoder
+"""Implementation of lua table encoder
 """
 import re
 
