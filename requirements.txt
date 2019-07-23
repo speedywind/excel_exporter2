@@ -1,2 +1,2 @@
 dicttoxml==1.7.4
-xlrd==1.2.0
+openpyxl==2.6.2

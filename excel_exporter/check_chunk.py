@@ -6,7 +6,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import re
-import time
 
 from .log import debug
 
@@ -212,7 +211,7 @@ def CheckInt(data, args=None):
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
     vals = data.split('.')
-    assert len(vals) == 2 and vals[1] == "0", "Error[非法的整型]: found {} near {} {} ({}{})".format(
+    assert len(vals) == 1, "Error[非法的整型]: found {} near {} {} ({}{})".format(
         data, sheetname, filename, GetColNum(mycol), str(myrow + 1))
     return vals[0]
 
@@ -247,7 +246,7 @@ def CheckString(data, args=None):
 
 
 def GetValue(sheet, row, col):
-    return str(sheet.cell(row, col).value).strip()
+    return str(sheet.cell(row, col).value or "").strip()
 
 
 def GetType(name):
@@ -307,8 +306,8 @@ def CheckChunk(parses, sheet, row1, row2, col):
     global myrow
     global mycol
     global imglacks
-    sheetname = sheet.name
-    filename = GetValue(sheet, 0, 0)
+    sheetname = sheet.title
+    filename = GetValue(sheet, 1, 1)
     pychunks = []
     while row1 < row2:
         myrow = row1
@@ -398,7 +397,7 @@ def ParseSheet(fields, conf):
 
 def ProcessSheet(parses, sheet, row_start):
     _, py = CheckChunk(
-        parses, sheet, row_start, sheet.nrows, 0)
+        parses, sheet, row_start, sheet.max_row, 1)
     py = "{"+py+"}"
     return eval(py)
 

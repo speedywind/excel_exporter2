@@ -7,22 +7,29 @@ from __future__ import (absolute_import, division, print_function,
 import codecs
 import os
 
-import xlrd
+import openpyxl
 
 from .check_chunk import ParseSheet, ProcessSheet
 from .config import config
 from .log import debug, info, set_debug_mode
 
-sheetfields = {}
 output_path = './output/'
 
 
 def get_value(sheet, row, col):
-    return str(sheet.cell(row, col).value).strip()
+    return sheet.cell(row, col).value
+
+
+def get_str_value(sheet, row, col):
+    return str(get_value(sheet, row, col) or "").strip()
 
 
 def get_line(sheet, row):
-    return [get_value(sheet, row, col) for col in range(0, sheet.ncols)]
+    return [cell.value for cell in sheet[row]]
+
+
+def get_str_line(sheet, row):
+    return [str(cell.value or "").strip() for cell in sheet[row]]
 
 
 def save_to_file(target, filename, file_type, txt):
@@ -34,48 +41,36 @@ def save_to_file(target, filename, file_type, txt):
 
 def export_workbook(workbook_path, check_config):
     info("Reading " + workbook_path)
-    workbook = xlrd.open_workbook(workbook_path)
-    for sheet in workbook.sheets():
-        if sheet.nrows < 3:
+    workbook = openpyxl.load_workbook(workbook_path, data_only=True)
+    workbook.guess_types = True
+    for sheet in workbook:
+        if sheet.max_row < 3:
             continue
-        #	第一行注释
-        #	第二行导出选项
-        #   第三行类型
-        cursor = 0
-        filename = get_value(sheet, cursor, 0)
-        sheetname = sheet.name
+        #	第一行注释    comment
+        #	第二行导出选项 output_option
+        #   第三行导出类型 output_type
+        row = 1
+        filename = get_str_value(sheet, row, 1)
+        sheetname = sheet.title
         if filename is '':
             continue
         # 调试的时候方便只导出某一sheet
         # if filename != 'package':
         #     continue
         info("Exporting {} {} ......".format(sheetname, filename))
-        sheetfields[filename] = ""
-        cursor = 2
-        line = get_line(sheet, cursor)
-        for field in line:
-            sheetfields[filename] += field + "\\\n"
-        parses = ParseSheet(line, check_config)
-        debug(parses)
-        cursor = 1
+
+        # 生成多导出目标 sheet
         for target, flag in config['target'].items():
-            target_parses = parses.copy()
-            continue_flag = False
-            for col in range(0, len(target_parses)):
-                option = sheet.cell(cursor, col).value
-                try:
-                    option = int(option)
-                except:
-                    option = 0
-                if option & flag == 0:
-                    if col == 0:
-                        continue_flag = True
-                        break
-                    else:
-                        target_parses[col] = None
-            if continue_flag:
-                continue
-            ast = ProcessSheet(target_parses, sheet, 3)
+            sheet_for_target = workbook.copy_worksheet(sheet)
+            sheet_for_target.title = sheetname+"#"+target
+            for col in sheet_for_target.columns:
+                if (col[1].value or 0) & flag == 0:
+                    col[2].value = None
+            row = 3
+            output_type = get_str_line(sheet_for_target, row)
+            parses = ParseSheet(output_type, check_config)
+            row = 4
+            ast = ProcessSheet(parses, sheet_for_target, row)
             result = {}
             # 在此进行文件内容的校验并导出
             for file_type, conf in config['outputFileTypes'].items():
@@ -91,7 +86,6 @@ def export_workbook(workbook_path, check_config):
                     result[file_type] = format_func(result[file_type])
                 # 保存到文件
                 save_to_file(target, filename, file_type, result[file_type])
-
 
 def export(wb_paths, check_config):
     # 生成对应目录
