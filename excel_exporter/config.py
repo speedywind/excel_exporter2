@@ -1,7 +1,7 @@
 from json import dumps as json_dumps
 from xml.dom.minidom import parseString
 
-import dicttoxml
+from dicttoxml import dicttoxml
 
 from .lua_table_dump import dumps as lua_dumps
 
@@ -26,7 +26,7 @@ config = {
         },
         'xml': {
             'enable': False,
-            'convert_func': lambda d: dicttoxml.dicttoxml(d).decode('utf-8'),
+            'convert_func': lambda d: dicttoxml(d).decode('utf-8'),
             'format': False,
             'format_func': lambda txt: parseString(txt).toprettyxml(),
         }

@@ -204,32 +204,31 @@ def CheckMyStruct(fieldtype, fields):
 
 
 def CheckInt(data, args=None):
-    if len(data) == 0:
+    if data == None:
         assert args != "key", "Error[主键不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         assert args != None, "Error[字段不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    vals = data.split('.')
-    assert len(vals) == 1, "Error[非法的整型]: found {} near {} {} ({}{})".format(
+    assert isinstance(data,int), "Error[非法的整型]: found {} near {} {} ({}{})".format(
         data, sheetname, filename, GetColNum(mycol), str(myrow + 1))
-    return vals[0]
+    return str(data)
 
 
 def CheckBool(data, args=None):
-    if len(data) == 0:
+    if data == None:
         assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return "False" if args == 'false' else "True"
-    return ("0.0" == data or 'false' == data) and "False" or "True"
+    return (0 == data or 'false' == data) and "False" or "True"
 
 
 def CheckFloat(data, args=None):
-    if len(data) == 0:
+    if data == None:
         assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    return data
+    return str(data)
 
 
 def CheckString(data, args=None):
@@ -246,7 +245,12 @@ def CheckString(data, args=None):
 
 
 def GetValue(sheet, row, col):
-    return str(sheet.cell(row, col) or "").strip()
+    cell = sheet.cell(row, col)
+    # if cell == None:
+    #     return ""
+    if isinstance(cell, str):
+        return cell.strip()
+    return cell
 
 
 def GetType(name):
@@ -410,6 +414,6 @@ def Quotes(val):
 
 def GetNextRow(sheet, row1, row2, col):
     for newrow1 in range(row1, row2):
-        if len(GetValue(sheet, newrow1, col)) != 0:
+        if GetValue(sheet, newrow1, col) != None:
             return newrow1
     return row2
