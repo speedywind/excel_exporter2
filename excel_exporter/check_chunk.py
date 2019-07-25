@@ -232,15 +232,16 @@ def CheckFloat(data, args=None):
 
 
 def CheckString(data, args=None):
-    if not data:
+    if data == None:
         if not args:
             return "\"\""
         else:
             return args
-    elif data[-2:] == ".0":
-        data = data[:-2]
-    data = data.replace("\n", "\\n")
-    data = data.replace('"', r'\"')
+    if isinstance(data, str):
+        data = data.replace("\n", "\\n")
+        data = data.replace('"', r'\"')
+    else:
+        data = str(data)
     return '"' + data + '"'
 
 
