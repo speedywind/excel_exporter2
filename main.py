@@ -13,21 +13,7 @@ import os
 from excel_exporter import exporter
 from excel_exporter.log import debug, set_debug_mode
 
-
-def main():
-    parser = argparse.ArgumentParser(
-        prog='excel_exporter',
-        description='export excel configuration to lua/js/json/xml')
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s '+__version__)
-    parser.add_argument('workbooks', help='name of workbooks', nargs='*')
-    parser.add_argument('-c', '--check_config',
-                        help='config for check contents of sheets')
-    parser.add_argument('-d', '--directory', help='directory of workbooks')
-    parser.add_argument('-o', '--output', help='output directory')
-    parser.add_argument('-v', '--verbosity', action="count",
-                        help="increase output verbosity")
-    args = parser.parse_args()
+def run(args):
     if args.verbosity:
         set_debug_mode(True)
 
@@ -51,6 +37,28 @@ def main():
         exporter.export([os.path.join(args.directory, filename)
                          for filename in os.listdir(args.directory)], check_config)
 
+def main():
+    parser = argparse.ArgumentParser(
+        prog='excel_exporter',
+        description='export excel configuration to lua/js/json/xml')
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s '+__version__)
+    parser.add_argument('workbooks', help='name of workbooks', nargs='*')
+    parser.add_argument('-c', '--check_config',
+                        help='config for check contents of sheets')
+    parser.add_argument('-d', '--directory', help='directory of workbooks')
+    parser.add_argument('-o', '--output', help='output directory')
+    parser.add_argument('-v', '--verbosity', action="count",
+                        help="increase output verbosity")
+    args = parser.parse_args()
+
+    run(args)
+
 
 if __name__ == "__main__":
-    main()
+    profile = False
+    if profile:
+        import cProfile
+        cProfile.run("main()")
+    else:
+        main()

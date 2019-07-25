@@ -246,7 +246,7 @@ def CheckString(data, args=None):
 
 
 def GetValue(sheet, row, col):
-    return str(sheet.cell(row, col).value or "").strip()
+    return str(sheet.cell(row, col) or "").strip()
 
 
 def GetType(name):
