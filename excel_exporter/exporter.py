@@ -83,17 +83,16 @@ def export_workbook(workbook_path, check_config):
     info("Reading " + workbook_path)
     workbook = xlrd.open_workbook(workbook_path)
     for worksheet in workbook.sheets():
-        if worksheet.nrows < 3:
+        if worksheet.nrows <= 3:
             continue
         #	第一行注释    comment
         #	第二行导出选项 output_option
         #   第三行导出类型 output_type
-        sheet = Sheet(worksheet)
-        row = 1
-        filename = get_str_value(sheet, row, 1)
-        sheetname = sheet.title
+        sheetname = worksheet.name
+        filename = worksheet.cell_value(0, 0)
         if filename is '':
             continue
+        sheet = Sheet(worksheet)
         # 调试的时候方便只导出某一sheet
         # if filename != 'package':
         #     continue
