@@ -20,16 +20,25 @@ class Sheet():
     def __init__(self, sheet):
         self.title = sheet.name
         self.values = []
+        output_types = sheet.row_values(2)
+        while(output_types[-1] == ""):
+            output_types.pop()
+        ncols = len(output_types)
         for row_i in range(sheet.nrows):
             row_list = []
             self.values.append(row_list)
-            for cell in sheet.row_values(row_i):
-                if cell is "":
+            for col_i in range(ncols):
+                cell = sheet.cell(row_i, col_i)
+                ctype = cell.ctype
+                cell = cell.value
+                if ctype == xlrd.XL_CELL_EMPTY:
                     cell = None
-                if isinstance(cell, float):
+                elif ctype == xlrd.XL_CELL_NUMBER:
                     cell_int = int(cell)
                     if cell_int == cell:
                         cell = cell_int
+                else:
+                    assert(ctype == xlrd.XL_CELL_TEXT)
                 row_list.append(cell)
         self.max_row = len(self.values)+1
 

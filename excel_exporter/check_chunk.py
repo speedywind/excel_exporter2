@@ -143,7 +143,7 @@ def CheckParses(fields):
                 if len(fields[m]) != 0 and TInt != fields[m][:len(TInt)] and TBool != fields[m][:len(TBool)] \
                         and TFloat != fields[m][:len(TFloat)] and TString != fields[m][:len(TString)] and TNextLevel != fields[m][:len(TNextLevel)] \
                         and not IsMyInt0(fields[m].split('=')[0]) and not IsMyFloat(fields[m].split('=')[0]) and not IsMyInt(fields[m].split('=')[0]) and not IsMyString(fields[m].split('=')[0]):
-                    endpos = m
+                    endpos = m 
                     # print endpos, fields[endpos]
                     break
             # print endpos, nextfields + fields[0:endpos]
