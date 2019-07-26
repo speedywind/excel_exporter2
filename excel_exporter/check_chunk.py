@@ -203,6 +203,10 @@ def CheckMyStruct(fieldtype, fields):
     return nextfields
 
 
+number_pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
+int_pattern = re.compile(r'^[-+]?[-0-9]\d*$')
+
+
 def CheckInt(data, args=None):
     if data == None:
         assert args != "key", "Error[主键不能为空]: near " + sheetname + \
@@ -210,8 +214,8 @@ def CheckInt(data, args=None):
         assert args != None, "Error[字段不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    assert data.find(".") == -1, "Error[非法的整型]: found {} near {} {} ({}{})".format(
-        data, sheetname, filename, GetColNum(mycol), str(myrow + 1))
+    assert int_pattern.match(data), "Error[非法的整型]: found {} near {} {} ({}{})".format(
+        data, sheetname, filename, GetColNum(mycol), str(myrow))
     return data
 
 
@@ -228,6 +232,8 @@ def CheckFloat(data, args=None):
         assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
+    assert number_pattern.match(data), "Error[非法的浮点型]: found {} near {} {} ({}{})".format(
+        data, sheetname, filename, GetColNum(mycol), str(myrow))
     return data
 
 
@@ -246,12 +252,7 @@ def CheckString(data, args=None):
 
 
 def GetValue(sheet, row, col):
-    cell = sheet.cell(row, col)
-    # if cell == None:
-    #     return ""
-    if isinstance(cell, str):
-        return cell.strip()
-    return cell
+    return sheet.cell(row, col)
 
 
 def GetType(name):
@@ -292,7 +293,7 @@ def changeBase(n, b):
 
 
 def GetColNum(col):
-    return changeBase(col, 26)
+    return changeBase(col-1, 26)
 
 
 def GetCols(parses):

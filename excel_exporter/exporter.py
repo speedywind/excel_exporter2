@@ -61,7 +61,7 @@ def get_value(sheet, row, col):
 
 
 def get_str_value(sheet, row, col):
-    return str(get_value(sheet, row, col) or "").strip()
+    return str(get_value(sheet, row, col) or "")
 
 
 def get_line(sheet, row):
@@ -69,7 +69,7 @@ def get_line(sheet, row):
 
 
 def get_str_line(sheet, row):
-    return [str(cell or "").strip() for cell in sheet[row]]
+    return [str(cell or "") for cell in sheet[row]]
 
 
 def save_to_file(target, filename, file_type, txt):
