@@ -106,7 +106,7 @@ def CheckParses(fields):
         elif typepos == -1 and IsMyInt0(name):
             fieldtype = TInt
             parse.func = TInt
-            if not parse.default:
+            if parse.default == None:
                 parse.default = "0"
         elif typepos == -1 and IsMyInt(name):
             fieldtype = TInt
@@ -114,7 +114,7 @@ def CheckParses(fields):
         elif typepos == -1 and IsMyFloat(name):
             fieldtype = TFloat
             parse.func = TFloat
-            if not parse.default:
+            if parse.default == None:
                 parse.default = "0"
         elif typepos == -1 and IsMyString(name):
             fieldtype = TString
@@ -136,18 +136,18 @@ def CheckParses(fields):
                 nextfields = CheckMyStruct(fieldtype, fields)
             else:
                 print(fieldtype, name, parse)
-                assert not field, "Error[非法的字段名]: near " + \
+                assert field == None, "Error[非法的字段名]: near " + \
                     field + "\n" + str(parses)
             endpos = len(fields)
             for m in range(0, endpos):
                 if len(fields[m]) != 0 and TInt != fields[m][:len(TInt)] and TBool != fields[m][:len(TBool)] \
                         and TFloat != fields[m][:len(TFloat)] and TString != fields[m][:len(TString)] and TNextLevel != fields[m][:len(TNextLevel)] \
                         and not IsMyInt0(fields[m].split('=')[0]) and not IsMyFloat(fields[m].split('=')[0]) and not IsMyInt(fields[m].split('=')[0]) and not IsMyString(fields[m].split('=')[0]):
-                    endpos = m 
+                    endpos = m
                     # print endpos, fields[endpos]
                     break
             # print endpos, nextfields + fields[0:endpos]
-            assert TList != fieldtype[:len(TList)] or endpos == 0 or not fields[endpos - 1] or IsMyStruct(
+            assert TList != fieldtype[:len(TList)] or endpos == 0 or fields[endpos - 1] == None or IsMyStruct(
                 nextfields[0]), "Error[list后请不要配一级字段]: near " + field + "\n" + str(parses)
             parse.args = CheckParses(nextfields + fields[:endpos])
             parse1 = parse.args.pop()
@@ -195,7 +195,7 @@ def CheckMyStruct(fieldtype, fields):
             assert parse.find("itemid") in [0, len("string:"), len("default:")]\
                 or parse.find("count") in [0, len("int:"), len("float:"), len("default:")]\
                 or parse.find("rate") in [0, len("int:"), len("default:")]\
-                or parse.find("weight") in [0, len("int:"), len("float:"), len("default:")] or not parse,\
+                or parse.find("weight") in [0, len("int:"), len("float:"), len("default:")] or parse == None,\
                 "Error[非法的数据结构]: near " + fieldtype + \
                 "\n" + str(nextfields + fields)
     else:
@@ -233,7 +233,7 @@ def CheckFloat(data, args=None):
 
 def CheckString(data, args=None):
     if data == None:
-        if not args:
+        if args == None:
             return "\"\""
         else:
             return args
@@ -364,7 +364,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
                     majorkey = str(val)
                 col1 += 1
             elif parse.func == TStruct:
-                if not GetValue(sheet, row1, col1) and parse.args[0].default == None:
+                if GetValue(sheet, row1, col1) == None and parse.args[0].default == None:
                     col1 += GetCols(parse.args)
                 else:
                     col1, py = CheckChunk(
