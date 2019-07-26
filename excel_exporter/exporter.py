@@ -37,8 +37,11 @@ class Sheet():
                     cell_int = int(cell)
                     if cell_int == cell:
                         cell = cell_int
+                    cell = str(cell)
                 else:
                     assert(ctype == xlrd.XL_CELL_TEXT)
+                    if cell == "":
+                        cell = None
                 row_list.append(cell)
         self.max_row = len(self.values)+1
 
@@ -102,7 +105,7 @@ def export_workbook(workbook_path, check_config):
             sheet_for_target = sheet
             sheet_for_target[3] = list(row_output_type)
             for i, output_option in enumerate(sheet_for_target[2]):
-                if (output_option or 0) & flag == 0:
+                if (int(output_option or 0)) & flag == 0:
                     sheet_for_target[3][i] = None
             row = 3
             output_type = get_str_line(sheet_for_target, row)

@@ -195,7 +195,7 @@ def CheckMyStruct(fieldtype, fields):
             assert parse.find("itemid") in [0, len("string:"), len("default:")]\
                 or parse.find("count") in [0, len("int:"), len("float:"), len("default:")]\
                 or parse.find("rate") in [0, len("int:"), len("default:")]\
-                or parse.find("weight") in [0, len("int:"), len("float:"), len("default:")] or parse == None,\
+                or parse.find("weight") in [0, len("int:"), len("float:"), len("default:")] or not parse,\
                 "Error[非法的数据结构]: near " + fieldtype + \
                 "\n" + str(nextfields + fields)
     else:
@@ -210,9 +210,9 @@ def CheckInt(data, args=None):
         assert args != None, "Error[字段不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    assert isinstance(data,int), "Error[非法的整型]: found {} near {} {} ({}{})".format(
+    assert data.find(".") == -1, "Error[非法的整型]: found {} near {} {} ({}{})".format(
         data, sheetname, filename, GetColNum(mycol), str(myrow + 1))
-    return str(data)
+    return data
 
 
 def CheckBool(data, args=None):
@@ -220,7 +220,7 @@ def CheckBool(data, args=None):
         assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return "False" if args == 'false' else "True"
-    return (0 == data or 'false' == data) and "False" or "True"
+    return ('0' == data or 'false' == data) and "False" or "True"
 
 
 def CheckFloat(data, args=None):
@@ -228,7 +228,7 @@ def CheckFloat(data, args=None):
         assert args, "Error[字段不能为空]: near " + sheetname +\
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
-    return str(data)
+    return data
 
 
 def CheckString(data, args=None):
