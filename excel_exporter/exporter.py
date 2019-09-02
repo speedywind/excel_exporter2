@@ -9,7 +9,7 @@ import os
 
 import xlrd
 
-from .check_chunk import ParseSheet, ProcessSheet
+from .check_chunk import ParseSheet, ProcessSheet, GetColNum
 from .config import config
 from .log import debug, info, set_debug_mode
 
@@ -39,7 +39,8 @@ class Sheet():
                         cell = cell_int
                     cell = str(cell)
                 else:
-                    assert(ctype == xlrd.XL_CELL_TEXT)
+                    assert ctype == xlrd.XL_CELL_TEXT, "Error[非法的数据结构]: found {} near {} ({}{})".format(
+                        cell, self.title, GetColNum(col_i+1), str(row_i+1))
                     if cell == "":
                         cell = None
                 row_list.append(cell)
