@@ -9,7 +9,7 @@ import os
 
 import xlrd
 
-from .check_chunk import ParseSheet, ProcessSheet, GetColNum
+from .check_chunk import ParseSheet, ProcessSheet, GetColNum, FormatSheet
 from .config import config
 from .log import debug, info, set_debug_mode
 
@@ -83,25 +83,29 @@ def save_to_file(target, filename, file_type, txt):
 def export_workbook(workbook_path, check_config):
     info("Reading " + workbook_path)
     workbook = xlrd.open_workbook(workbook_path)
-    for worksheet in workbook.sheets():
-        if worksheet.nrows <= 3:
-            continue
-        #	第一行注释    comment
-        #	第二行导出选项 output_option
-        #   第三行导出类型 output_type
-        sheetname = worksheet.name
-        filename = worksheet.cell_value(0, 0)
-        if filename is '':
-            continue
-        sheet = Sheet(worksheet)
-        # 调试的时候方便只导出某一sheet
-        # if filename != 'package':
-        #     continue
-        info("Exporting {} {} ......".format(sheetname, filename))
+    for target, flag in config['target'].items():
+        ast = ""
+        for sheetx in range(workbook.nsheets):
+            worksheet = workbook._sheet_list[sheetx]
+            if not worksheet:
+                break
+            if worksheet.nrows <= 3:
+                continue
+            #	第一行注释    comment
+            #	第二行导出选项 output_option
+            #   第三行导出类型 output_type
+            sheetname = worksheet.name
+            filename = worksheet.cell_value(0, 0)
+            if filename == '':
+                continue
+            sheet = Sheet(worksheet)
+            # 调试的时候方便只导出某一sheet
+            # if filename != 'package':
+            #     continue
+            info("Exporting {} {} for {} ......".format(sheetname, filename, target))
 
-        # 生成多导出目标 sheet
-        row_output_type = list(sheet[3])
-        for target, flag in config['target'].items():
+            # 生成多导出目标 sheet
+            row_output_type = list(sheet[3])
             sheet_for_target = sheet
             sheet_for_target[3] = list(row_output_type)
             for i, output_option in enumerate(sheet_for_target[2]):
@@ -111,9 +115,16 @@ def export_workbook(workbook_path, check_config):
             output_type = get_str_line(sheet_for_target, row)
             parses = ParseSheet(output_type, check_config)
             row = 4
-            ast = ProcessSheet(parses, sheet_for_target, row)
+            ast += ProcessSheet(parses, sheet_for_target, row)
             if len(ast) == 0:
                 continue
+            # 根据下一张表的内容判断是否进行导出,下一张表有相同内容时导出到一张表
+            worksheet = sheetx+1 < workbook.nsheets and workbook._sheet_list[sheetx+1] or None
+            if worksheet and (worksheet.nrows <= 3 or filename == worksheet.cell_value(0, 0)):
+                FormatSheet(ast)
+                ast += ","
+                continue
+            ast = FormatSheet(ast)
             result = {}
             # 在此进行文件内容的校验并导出
             for file_type, conf in config['outputFileTypes'].items():
@@ -129,6 +140,7 @@ def export_workbook(workbook_path, check_config):
                     result[file_type] = format_func(result[file_type])
                 # 保存到文件
                 save_to_file(target, filename, file_type, result[file_type])
+            ast = ""
 
 
 def export(wb_paths, check_config):

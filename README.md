@@ -1,5 +1,8 @@
 # Excel exporter
 
+## commit_excel.bat
+将NAS中的excel直接拖拽到此脚本上进行提交实现自动提交
+
 ## Example
 
 excel 导出 lua 表

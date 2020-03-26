@@ -9,6 +9,7 @@ config = {
     'target': {
         'client': 1,
         'server': 2,
+        'all': 3,
     },
     'outputFileTypes': {
         'lua': {
@@ -19,7 +20,7 @@ config = {
             'file_structs': "-- {0}\nreturn {1}",
         },
         'json': {
-            'enable': False,
+            'enable': True,
             'convert_func': lambda d: json_dumps(d, indent=2),
             'format': False,
             'format_func': None

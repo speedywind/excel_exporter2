@@ -6,7 +6,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import os
 import re
-
+import json
 from .log import debug
 
 config = None
@@ -68,7 +68,7 @@ class Parse():
 def CheckParses(fields):
     parses = []
     while len(fields) > 0:
-        # print fields
+        # debug(fields)
         field = fields.pop(0)
         if not field:
             parse = Parse()
@@ -89,8 +89,8 @@ def CheckParses(fields):
         if valuepos != -1:  # 设置默认值
             parse.default = name[valuepos + 1:]
             name = name[:valuepos]
-        parse.name = ValToKey(name)
-        # print fieldtype, name, parse
+        parse.name = name
+        # debug(fieldtype, name, parse)
         if TDefault == fieldtype[:len(TDefault)]:  # 默认字段,只出现在list和struct中
             parse.func = TDefault
         elif TInt == fieldtype[:len(TInt)]:
@@ -101,7 +101,7 @@ def CheckParses(fields):
             parse.func = TFloat
         elif TString == fieldtype[:len(TString)]:
             parse.func = TString
-            if parse.default and parse.default[:1] != "\"" and parse.default[-1:] != "\"":
+            if parse.default and parse.default != "key" and parse.default[:1] != "\"" and parse.default[-1:] != "\"":
                 parse.default = CheckString(parse.default)
         elif typepos == -1 and IsMyInt0(name):
             fieldtype = TInt
@@ -119,15 +119,14 @@ def CheckParses(fields):
         elif typepos == -1 and IsMyString(name):
             fieldtype = TString
             parse.func = TString
-            if parse.default and parse.default[:1] != "\"" and parse.default[-1:] != "\"":
+            if parse.default and parse.default != "key" and parse.default[:1] != "\"" and parse.default[-1:] != "\"":
                 parse.default = CheckString(parse.default)
         else:
             if TList == fieldtype[:len(TList)]:
                 parse.func = TList
                 nextfield = fieldtype[len(TList) + 1:-1]
-                nextfields = IsMyStruct(nextfield) and [
-                    nextfield + ":"] or ["struct<" + nextfield + ">:"]
-                # print nextfields
+                nextfields = IsMyStruct(nextfield) and [nextfield + ":"] or ["struct<" + nextfield + ">:"]
+                debug(nextfields)
             elif TStruct == fieldtype[:len(TStruct)]:
                 parse.func = TStruct
                 nextfields = fieldtype[len(TStruct) + 1:-1].split(",")
@@ -135,7 +134,6 @@ def CheckParses(fields):
                 parse.func = TStruct
                 nextfields = CheckMyStruct(fieldtype, fields)
             else:
-                print(fieldtype, name, parse)
                 assert field == None, "Error[非法的字段名]: near " + \
                     field + "\n" + str(parses)
             endpos = len(fields)
@@ -144,9 +142,9 @@ def CheckParses(fields):
                         and TFloat != fields[m][:len(TFloat)] and TString != fields[m][:len(TString)] and TNextLevel != fields[m][:len(TNextLevel)] \
                         and not IsMyInt0(fields[m].split('=')[0]) and not IsMyFloat(fields[m].split('=')[0]) and not IsMyInt(fields[m].split('=')[0]) and not IsMyString(fields[m].split('=')[0]):
                     endpos = m
-                    # print endpos, fields[endpos]
+                    debug(endpos, fields[endpos])
                     break
-            # print endpos, nextfields + fields[0:endpos]
+            # debug(endpos, nextfields + fields[0:endpos])
             assert TList != fieldtype[:len(TList)] or endpos == 0 or fields[endpos - 1] == None or IsMyStruct(
                 nextfields[0]), "Error[list后请不要配一级字段]: near " + field + "\n" + str(parses)
             parse.args = CheckParses(nextfields + fields[:endpos])
@@ -165,24 +163,25 @@ def CheckParses(fields):
                 parse.args += parse1.args
             else:
                 parse.args.append(parse1)
-            # print parse
+            # debug(parse)
             fields = fields[endpos:]
-        # if len(parses) > 0:
-        # 	print parse," += ",parses[len(parses)-1]
+        if len(parses) > 0:
+            debug(parses[len(parses)-1]," += ",parse)
         if len(parses) > 0 and parse.func == TList and parse.name == parses[len(parses) - 1].name:
             # and (parse.args == parses[len(parses)-1].args or (type(parses[len(parses)-1].args) is list \
             # and parse.args == parses[len(parses)-1].args[:1])): #同级合并
-            parse.args += parses[len(parses) - 1].args
+            parse.args = parses[len(parses) - 1].args + parse.args
             parses.pop()
         for index, parse1 in enumerate(parses):
             assert parse.name != parse1.name, "Error[重复的字段]: near " + \
                 field + "\n" + str(parses)
         parses.append(parse)
-    # print parses
+    debug(parses)
     return parses
 
 
 def ValToKey(val):
+    # return val
     return val.isdecimal() and "[" + val + "]" or val
 
 
@@ -321,7 +320,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
         pychunk = []
         majorkey = None
         newrow2 = GetNextRow(sheet, row1 + 1, row2, col)
-        # print "parse row", row1, newrow2
+        debug("parse (" + str(row1) + "-" + str(newrow2) + "," + str(col)+")")
         for parse in parses:
             mycol = col1
             if parse == None:
@@ -330,7 +329,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
             field = parse.func == TDefault and parse.default or GetValue(
                 sheet, row1, col1)
             key = parse.name
-            # print myrow, mycol, parse.func, key, field
+            debug(myrow, mycol, parse.func, key, field)
             if parse.func == TDefault:
                 assert parse.default, "Error[无效的默认值]: near " + sheetname + \
                     filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
@@ -358,7 +357,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 if val != '""':
                     pychunk.append(key and "\"" + key +
                                    "\":" + Quotes(val) or Quotes(val))
-                if parse.default == '"key"':
+                if parse.default == "key":
                     assert not majorkey, "Error[重复的主键]: near " + sheetname + \
                         filename + "(" + GetColNum(mycol) + \
                         str(myrow + 1) + ")"
@@ -368,27 +367,25 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 if GetValue(sheet, row1, col1) == None and parse.args[0].default == None:
                     col1 += GetCols(parse.args)
                 else:
-                    col1, py = CheckChunk(
-                        parse.args, sheet, row1, newrow2, col1)
-                    if py[1:2] == "[":
+                    newrow2 = GetNextRow(sheet, row1 + 1, newrow2, col1)
+                    col1, py = CheckChunk(parse.args, sheet, row1, newrow2, col1)
+                    if parse.args[0].default == "key":
                         pychunk.append(py)
                     elif py:
-                        pychunk.append(key and "\"" + key +
-                                       "\":{" + py + "}" or "{" + py + "}")
+                        pychunk.append(key and "\"" + key +"\":{" + py + "}" or "{" + py + "}")
             elif parse.func == TList:
-                col1, py = CheckChunk(
-                    parse.args, sheet, row1, newrow2, col1,)
-                if parse.default == "key":
-                    key = ValToKey(CheckInt(field))
-                pychunk.append("\"" + key + "\":[" + py + "]")
+                col1, py = CheckChunk(parse.args, sheet, row1, newrow2, col1,)
+                if parse.args[0].args[0].default == "key":
+                    pychunk.append("\"" + key + "\":{" + py + "}")
+                else:
+                    pychunk.append("\"" + key + "\":[" + py + "]")
             else:  # 跳过空字段
                 assert parse.func == None, "Error[非法的字段名]: near " + sheetname + \
                     filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
                 col1 += 1
-            # print luachunk[len(luachunk)-1]
+            # debug(pychunk[len(pychunk)-1])
         if majorkey:
-            pychunks.append(majorkey +
-                            ":{" + ", ".join(pychunk) + "}")
+            pychunks.append(majorkey + ":{" + ", ".join(pychunk) + "}")
         elif len(pychunk) > 0:  # 列表比如{1,2,3}
             pychunks.append(",".join(pychunk))
         row1 = newrow2
@@ -404,8 +401,20 @@ def ParseSheet(fields, conf):
 def ProcessSheet(parses, sheet, row_start):
     _, py = CheckChunk(
         parses, sheet, row_start, sheet.max_row, 1)
+    return py
+
+def PairsHook(lst):
+    result={}
+    for key,val in lst:
+        assert not key in result, "Error[重复的主键]: near " + sheetname + \
+                    filename + "(" + key + ")"
+        result[key]=val
+    return result
+
+def FormatSheet(py):
     py = "{"+py+"}"
     return eval(py)
+    # return json.loads(py, object_pairs_hook=PairsHook)
 
 
 def Quotes(val):
@@ -415,7 +424,7 @@ def Quotes(val):
 
 
 def GetNextRow(sheet, row1, row2, col):
-    for newrow1 in range(row1, row2):
-        if GetValue(sheet, newrow1, col) != None:
-            return newrow1
+    for newrow2 in range(row1, row2):
+        if GetValue(sheet, newrow2, col) != None:
+            return newrow2
     return row2

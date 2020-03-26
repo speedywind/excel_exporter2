@@ -12,10 +12,15 @@ def set_debug_mode(value):
     _isdebug = value
 
 
-def debug(vals):
-    if _isdebug:
+def info(*vals):
+    if len(vals) > 1:
         print(vals)
+    else:
+        print(vals[0])
 
-
-def info(vals):
-    print(vals)
+def debug(*vals):
+    if _isdebug:
+        if len(vals) > 1:
+            print(vals)
+        else:
+            print(vals[0])
