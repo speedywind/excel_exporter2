@@ -108,7 +108,6 @@ git add .
 git commit -am "%message%"
 git rev-parse --short HEAD > ../version
 set /P commitid=<../version
-git push origin develop
 cd ../..
 
 cd output\client\lua
@@ -122,6 +121,10 @@ git add .
 git commit -am "%commitid% %message%"
 git push origin server
 cd ../../..
+
+cd output\configuration
+git push origin develop
+cd ../..
 
 DEL /F /Q configuration_tmp
 echo 同步完成!
