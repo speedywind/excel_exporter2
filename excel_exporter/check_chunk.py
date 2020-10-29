@@ -368,13 +368,13 @@ def CheckChunk(parses, sheet, row1, row2, col):
                     col1 += GetCols(parse.args)
                 else:
                     newrow2 = GetNextRow(sheet, row1 + 1, newrow2, col1)
-                    col1, py = CheckChunk(parse.args, sheet, row1, newrow2, col1)
+                    col1, py, _ = CheckChunk(parse.args, sheet, row1, newrow2, col1)
                     if parse.args[0].default == "key":
                         pychunk.append(py)
                     elif py:
                         pychunk.append(key and "\"" + key +"\":{" + py + "}" or "{" + py + "}")
             elif parse.func == TList:
-                col1, py = CheckChunk(parse.args, sheet, row1, newrow2, col1,)
+                col1, py, _ = CheckChunk(parse.args, sheet, row1, newrow2, col1,)
                 if parse.args[0].args[0].default == "key":
                     pychunk.append("\"" + key + "\":{" + py + "}")
                 else:
@@ -389,8 +389,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
         elif len(pychunk) > 0:  # 列表比如{1,2,3}
             pychunks.append(",".join(pychunk))
         row1 = newrow2
-    return col1, ",".join(pychunks)
-
+    return col1, ",".join(pychunks), len(pychunks)
 
 def ParseSheet(fields, conf):
     global config
@@ -399,9 +398,9 @@ def ParseSheet(fields, conf):
 
 
 def ProcessSheet(parses, sheet, row_start):
-    _, py = CheckChunk(
+    _, py, num = CheckChunk(
         parses, sheet, row_start, sheet.max_row, 1)
-    return py
+    return py, num
 
 def PairsHook(lst):
     result={}

@@ -85,6 +85,7 @@ def export_workbook(workbook_path, check_config):
     workbook = xlrd.open_workbook(workbook_path)
     for target, flag in config['target'].items():
         ast = ""
+        keys_num = 0
         for sheetx in range(workbook.nsheets):
             worksheet = workbook._sheet_list[sheetx]
             if not worksheet:
@@ -115,7 +116,9 @@ def export_workbook(workbook_path, check_config):
             output_type = get_str_line(sheet_for_target, row)
             parses = ParseSheet(output_type, check_config)
             row = 4
-            ast += ProcessSheet(parses, sheet_for_target, row)
+            py, num = ProcessSheet(parses, sheet_for_target, row)
+            ast += py
+            keys_num += num
             if len(ast) == 0:
                 continue
             # 根据下一张表的内容判断是否进行导出,下一张表有相同内容时导出到一张表
@@ -125,6 +128,7 @@ def export_workbook(workbook_path, check_config):
                 ast += ","
                 continue
             ast = FormatSheet(ast)
+            assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
             result = {}
             # 在此进行文件内容的校验并导出
             for file_type, conf in config['outputFileTypes'].items():
@@ -141,6 +145,7 @@ def export_workbook(workbook_path, check_config):
                 # 保存到文件
                 save_to_file(target, filename, file_type, result[file_type])
             ast = ""
+            keys_num = 0
 
 
 def export(wb_paths, check_config):
