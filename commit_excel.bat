@@ -61,6 +61,7 @@ git stash
 git clean -df
 git fetch
 git reset origin/develop --hard
+git submodule update
 cd ../..
 
 echo update output\client\lua
