@@ -8,8 +8,9 @@ import os
 import re
 import json
 from .log import debug
+from .config import config
 
-config = None
+check_config = None
 
 imglacks = {}
 TFileTag = "watergun"
@@ -27,6 +28,13 @@ filename = "watergun"
 sheetname = "watergun"
 
 
+def is_localize(txt):
+    for localize2, flag2 in config['localize'].items():
+        if txt and txt.find(localize2) >= 0:
+            return True
+    return False
+
+
 def MatchInList(l, name):
     for e in l:
         if re.match(e, name):
@@ -35,23 +43,23 @@ def MatchInList(l, name):
 
 
 def IsMyInt0(name):
-    return MatchInList(config['IsMyInt0'], name)
+    return MatchInList(check_config['IsMyInt0'], name)
 
 
 def IsMyInt(name):
-    return MatchInList(config['IsMyInt'], name)
+    return MatchInList(check_config['IsMyInt'], name)
 
 
 def IsMyString(name):
-    return MatchInList(config['IsMyString'], name)
+    return MatchInList(check_config['IsMyString'], name)
 
 
 def IsMyFloat(name):
-    return MatchInList(config['IsMyFloat'], name)
+    return MatchInList(check_config['IsMyFloat'], name)
 
 
 def IsMyStruct(name):
-    return MatchInList(config['IsMyStruct'], name)
+    return MatchInList(check_config['IsMyStruct'], name)
 
 
 class Parse():
@@ -326,8 +334,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
             if parse == None:
                 col1 += 1
                 continue
-            field = parse.func == TDefault and parse.default or GetValue(
-                sheet, row1, col1)
+            field = parse.func == TDefault and parse.default or GetValue(sheet, row1, col1)
             key = parse.name
             debug(myrow, mycol, parse.func, key, field)
             if parse.func == TDefault:
@@ -354,6 +361,9 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 col1 += 1
             elif parse.func == TString:
                 val = CheckString(field, parse.default)
+                if hasattr(parse,"localize") and is_localize(val) and val.find(parse.localize) < 0:
+                    col1 += 1
+                    continue
                 if val != '""':
                     pychunk.append(key and "\"" + key +
                                    "\":" + Quotes(val) or Quotes(val))
@@ -392,8 +402,8 @@ def CheckChunk(parses, sheet, row1, row2, col):
     return col1, ",".join(pychunks), len(pychunks)
 
 def ParseSheet(fields, conf):
-    global config
-    config = conf
+    global check_config
+    check_config = conf
     return CheckParses(fields)
 
 

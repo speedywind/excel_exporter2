@@ -9,7 +9,7 @@ import os
 
 import xlrd
 
-from .check_chunk import ParseSheet, ProcessSheet, GetColNum, FormatSheet
+from .check_chunk import ParseSheet, ProcessSheet, GetColNum, FormatSheet, is_localize
 from .config import config
 from .log import debug, info, set_debug_mode
 
@@ -83,78 +83,88 @@ def save_to_file(target, filename, file_type, txt):
 def export_workbook(workbook_path, check_config):
     info("Reading " + workbook_path)
     workbook = xlrd.open_workbook(workbook_path)
-    for target, flag in config['target'].items():
-        ast = ""
-        keys_num = 0
-        for sheetx in range(workbook.nsheets):
-            worksheet = workbook._sheet_list[sheetx]
-            if not worksheet:
-                break
-            if worksheet.nrows <= 3:
-                continue
-            #	第一行注释    comment
-            #	第二行导出选项 output_option
-            #   第三行导出类型 output_type
-            sheetname = worksheet.name
-            filename = worksheet.cell_value(0, 0)
-            if filename == '':
-                continue
-            sheet = Sheet(worksheet)
-            # 调试的时候方便只导出某一sheet
-            # if filename != 'package':
-            #     continue
-            info("Exporting {} {} for {} ......".format(sheetname, filename, target))
-
-            # 生成多导出目标 sheet
-            row_output_type = list(sheet[3])
-            sheet_for_target = sheet
-            sheet_for_target[3] = list(row_output_type)
-            for i, output_option in enumerate(sheet_for_target[2]):
-                if (int(output_option or 0)) & flag == 0:
-                    sheet_for_target[3][i] = None
-            row = 3
-            output_type = get_str_line(sheet_for_target, row)
-            parses = ParseSheet(output_type, check_config)
-            row = 4
-            py, num = ProcessSheet(parses, sheet_for_target, row)
-            ast += py
-            keys_num += num
-            if len(ast) == 0:
-                continue
-            # 根据下一张表的内容判断是否进行导出,下一张表有相同内容时导出到一张表
-            worksheet = sheetx+1 < workbook.nsheets and workbook._sheet_list[sheetx+1] or None
-            if worksheet and (worksheet.nrows <= 3 or filename == worksheet.cell_value(0, 0)):
-                FormatSheet(ast)
-                ast += ","
-                continue
-            ast = FormatSheet(ast)
-            assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
-            result = {}
-            # 在此进行文件内容的校验并导出
-            for file_type, conf in config['outputFileTypes'].items():
-                if not conf['enable']:
-                    continue
-                result[file_type] = conf['convert_func'](ast)
-                if 'file_structs' in conf:
-                    result[file_type] = conf['file_structs'].format(
-                        filename, result[file_type])
-                # 格式化
-                if conf['format'] and conf['format_func']:
-                    format_func = conf['format_func'].__call__
-                    result[file_type] = format_func(result[file_type])
-                # 保存到文件
-                save_to_file(target, filename, file_type, result[file_type])
+    for localize,flag0 in config['localize'].items():
+        if not flag0:
+            continue
+        for target, flag in config['target'].items():
             ast = ""
             keys_num = 0
+            for sheetx in range(workbook.nsheets):
+                worksheet = workbook._sheet_list[sheetx]
+                if not worksheet:
+                    break
+                if worksheet.nrows <= 3:
+                    continue
+                #	第一行注释    comment
+                #	第二行导出选项 output_option
+                #   第三行导出类型 output_type
+                sheetname = worksheet.name
+                filename = worksheet.cell_value(0, 0)
+                if filename == '':
+                    continue
+                sheet = Sheet(worksheet)
+                # 调试的时候方便只导出某一sheet
+                if filename != 'activity_date':
+                    continue
+                info("Exporting {} {} for {} ......".format(sheetname, filename, target+"_"+localize))
+
+                # 生成多导出目标 sheet
+                row_output_type = list(sheet[3])
+                sheet_for_target = sheet
+                sheet_for_target[3] = list(row_output_type)
+                for i, annotate in enumerate(sheet_for_target[1]):
+                    if is_localize(annotate) and annotate.find(localize) < 0:
+                        sheet_for_target[3][i] = None
+                for i, output_option in enumerate(sheet_for_target[2]):
+                    if (int(output_option or 0)) & flag == 0:
+                        sheet_for_target[3][i] = None
+                row = 3
+                output_type = get_str_line(sheet_for_target, row)
+                parses = ParseSheet(output_type, check_config)
+                row = 4
+                parses[0].localize = localize
+                py, num = ProcessSheet(parses, sheet_for_target, row)
+                ast += py
+                keys_num += num
+                if len(ast) == 0:
+                    continue
+                # 根据下一张表的内容判断是否进行导出,下一张表有相同内容时导出到一张表
+                worksheet = sheetx+1 < workbook.nsheets and workbook._sheet_list[sheetx+1] or None
+                if worksheet and (worksheet.nrows <= 3 or filename == worksheet.cell_value(0, 0)):
+                    FormatSheet(ast)
+                    ast += ","
+                    continue
+                ast = FormatSheet(ast)
+                # assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
+                result = {}
+                # 在此进行文件内容的校验并导出
+                for file_type, conf in config['outputFileTypes'].items():
+                    if not conf['enable']:
+                        continue
+                    result[file_type] = conf['convert_func'](ast)
+                    if 'file_structs' in conf:
+                        result[file_type] = conf['file_structs'].format(
+                            filename, result[file_type])
+                    # 格式化
+                    if conf['format'] and conf['format_func']:
+                        format_func = conf['format_func'].__call__
+                        result[file_type] = format_func(result[file_type])
+                    # 保存到文件
+                    save_to_file(target+"_"+localize, filename, file_type, result[file_type])
+                ast = ""
+                keys_num = 0
 
 
 def export(wb_paths, check_config):
     # 生成对应目录
     for file_type, conf in config['outputFileTypes'].items():
         if(conf['enable']):
-            for target, flag in config['target'].items():
-                os.makedirs(os.path.join(
-                    output_path, target, file_type), exist_ok=True)
+            for localize, flag0 in config['localize'].items():
+                if not flag0:
+                    continue
+                for target, flag in config['target'].items():
+                    os.makedirs(os.path.join(
+                    output_path, target+"_"+localize, file_type), exist_ok=True)
 
     for wb_path in wb_paths:
         basename = os.path.basename(wb_path)

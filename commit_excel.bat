@@ -64,34 +64,64 @@ git reset origin/develop --hard
 git submodule update
 cd ../..
 
-echo update output\client\lua
-if exist output\client\lua if not exist output\client\lua\.git (
-	DEL /F /Q output\client\lua
+echo update output\client_zh_cn\lua
+if exist output\client_zh_cn\lua if not exist output\client_zh_cn\lua\.git (
+	DEL /F /Q output\client_zh_cn\lua
 )
-if not exist output\client\lua (
+if not exist output\client_zh_cn\lua (
 	git lfs install
-	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client\lua
+	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_cn\lua
 )
-cd output\client\lua
+cd output\client_zh_cn\lua
 git stash
 git clean -df
 git fetch
 git reset origin/develop --hard
 cd ../../..
 
-echo update output\server\lua
-if exist output\server\lua if not exist output\server\lua (
-	DEL /F /Q output\server\lua
+echo update output\server_zh_cn\lua
+if exist output\server_zh_cn\lua if not exist output\server_zh_cn\lua (
+	DEL /F /Q output\server_zh_cn\lua
 )
-if not exist output\server\lua (
+if not exist output\server_zh_cn\lua (
 	git lfs install
-	git clone -b server https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server\lua
+	git clone -b server https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_cn\lua
 )
-cd output\server\lua
+cd output\server_zh_cn\lua
 git stash
 git clean -df
 git fetch
 git reset origin/server --hard
+cd ../../..
+
+echo update output\client_zh_tw\lua
+if exist output\client_zh_tw\lua if not exist output\client_zh_tw\lua\.git (
+	DEL /F /Q output\client_zh_tw\lua
+)
+if not exist output\client_zh_tw\lua (
+	git lfs install
+	git clone -b develop_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_tw\lua
+)
+cd output\client_zh_tw\lua
+git stash
+git clean -df
+git fetch
+git reset origin/develop_tw --hard
+cd ../../..
+
+echo update output\server_zh_tw\lua
+if exist output\server_zh_tw\lua if not exist output\server_zh_tw\lua (
+	DEL /F /Q output\server_zh_tw\lua
+)
+if not exist output\server_zh_tw\lua (
+	git lfs install
+	git clone -b server_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_tw\lua
+)
+cd output\server_zh_tw\lua
+git stash
+git clean -df
+git fetch
+git reset origin/server_tw --hard
 cd ../../..
 
 echo 开始导出配置
@@ -111,16 +141,28 @@ git rev-parse --short HEAD > ../version
 set /P commitid=<../version
 cd ../..
 
-cd output\client\lua
+cd output\client_zh_cn\lua
 git add .
 git commit -am "%commitid% %message%"
 git push origin develop
 cd ../../..
 
-cd output\server\lua
+cd output\server_zh_cn\lua
 git add .
 git commit -am "%commitid% %message%"
 git push origin server
+cd ../../..
+
+cd output\client_zh_tw\lua
+git add .
+git commit -am "%commitid% %message%"
+git push origin develop_tw
+cd ../../..
+
+cd output\server_zh_tw\lua
+git add .
+git commit -am "%commitid% %message%"
+git push origin server_tw
 cd ../../..
 
 cd output\configuration

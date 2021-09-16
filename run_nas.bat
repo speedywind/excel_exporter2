@@ -29,7 +29,7 @@ python .\main.py -c ^
 	"\\NAS\Project\Water Gun\产品文档\配置文件"\2.6.4wg_drama_event.xlsx ^
     
 if exist ..\WaterGun\Assets\LuaFramework\Lua\properties (
-	move output\client\lua\*.lua ..\WaterGun\Assets\LuaFramework\Lua\properties
+	move output\client_zh_cn\lua\*.lua ..\WaterGun\Assets\LuaFramework\Lua\properties
 	echo "rsync to ..\WaterGun\Assets\LuaFramework\Lua\properties"
 )
 pause

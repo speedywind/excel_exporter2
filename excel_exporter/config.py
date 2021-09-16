@@ -6,6 +6,10 @@ from dicttoxml import dicttoxml
 from .lua_table_dump import dumps as lua_dumps
 
 config = {
+    'localize':{
+        'zh_cn': True,
+        'zh_tw': True,
+    },
     'target': {
         'client': 1,
         'server': 2,
