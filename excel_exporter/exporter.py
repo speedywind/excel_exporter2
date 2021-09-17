@@ -104,8 +104,8 @@ def export_workbook(workbook_path, check_config):
                     continue
                 sheet = Sheet(worksheet)
                 # 调试的时候方便只导出某一sheet
-                if filename != 'activity_date':
-                    continue
+                # if filename != 'activity_date':
+                #     continue
                 info("Exporting {} {} for {} ......".format(sheetname, filename, target+"_"+localize))
 
                 # 生成多导出目标 sheet
