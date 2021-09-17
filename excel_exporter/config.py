@@ -11,26 +11,32 @@ config = {
         'zh_tw': True,
     },
     'target': {
-        'client': 1,
-        'server': 2,
-        'all': 3,
+        'client': {
+            'flag': 1,
+            'output': {'lua'}
+        },
+        'server': {
+            'flag': 2,
+            'output': {'lua'}
+        },
+        'all': {
+            'flag': 3,
+            'output': {'json'}
+        },
     },
     'outputFileTypes': {
         'lua': {
-            'enable': True,
             'convert_func': lambda d: lua_dumps(d, indent=2),
             'format': False,
             'format_func': None,
             'file_structs': "-- {0}\nreturn {1}",
         },
         'json': {
-            'enable': True,
             'convert_func': lambda d: json_dumps(d, indent=2),
             'format': False,
             'format_func': None
         },
         'xml': {
-            'enable': False,
             'convert_func': lambda d: dicttoxml(d).decode('utf-8'),
             'format': False,
             'format_func': lambda txt: parseString(txt).toprettyxml(),

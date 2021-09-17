@@ -83,10 +83,8 @@ def save_to_file(target, filename, file_type, txt):
 def export_workbook(workbook_path, check_config):
     info("Reading " + workbook_path)
     workbook = xlrd.open_workbook(workbook_path)
-    for localize,flag0 in config['localize'].items():
-        if not flag0:
-            continue
-        for target, flag in config['target'].items():
+    for localize, flag0 in config['localize'].items():
+        for target, types in config['target'].items():
             ast = ""
             keys_num = 0
             for sheetx in range(workbook.nsheets):
@@ -116,7 +114,7 @@ def export_workbook(workbook_path, check_config):
                     if is_localize(annotate) and annotate.find(localize) < 0:
                         sheet_for_target[3][i] = None
                 for i, output_option in enumerate(sheet_for_target[2]):
-                    if (int(output_option or 0)) & flag == 0:
+                    if (int(output_option or 0)) & types['flag'] == 0:
                         sheet_for_target[3][i] = None
                 row = 3
                 output_type = get_str_line(sheet_for_target, row)
@@ -138,9 +136,8 @@ def export_workbook(workbook_path, check_config):
                 # assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
                 result = {}
                 # 在此进行文件内容的校验并导出
-                for file_type, conf in config['outputFileTypes'].items():
-                    if not conf['enable']:
-                        continue
+                for file_type in types['output']:
+                    conf = config['outputFileTypes'][file_type]
                     result[file_type] = conf['convert_func'](ast)
                     if 'file_structs' in conf:
                         result[file_type] = conf['file_structs'].format(
@@ -157,14 +154,10 @@ def export_workbook(workbook_path, check_config):
 
 def export(wb_paths, check_config):
     # 生成对应目录
-    for file_type, conf in config['outputFileTypes'].items():
-        if(conf['enable']):
-            for localize, flag0 in config['localize'].items():
-                if not flag0:
-                    continue
-                for target, flag in config['target'].items():
-                    os.makedirs(os.path.join(
-                    output_path, target+"_"+localize, file_type), exist_ok=True)
+    for localize, flag0 in config['localize'].items():
+        for target, types in config['target'].items():
+            for file_type in types['output']:
+                os.makedirs(os.path.join(output_path, target+"_"+localize, file_type), exist_ok=True)
 
     for wb_path in wb_paths:
         basename = os.path.basename(wb_path)
