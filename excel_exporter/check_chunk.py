@@ -361,9 +361,6 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 col1 += 1
             elif parse.func == TString:
                 val = CheckString(field, parse.default)
-                if hasattr(parse,"localize") and is_localize(val) and val.find(parse.localize) < 0:
-                    col1 += 1
-                    continue
                 if val != '""':
                     pychunk.append(key and "\"" + key +
                                    "\":" + Quotes(val) or Quotes(val))
@@ -395,7 +392,11 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 col1 += 1
             # debug(pychunk[len(pychunk)-1])
         if majorkey:
-            pychunks.append(majorkey + ":{" + ", ".join(pychunk) + "}")
+            if hasattr(parses[0],"localize") and is_localize(majorkey) and majorkey.find(parses[0].localize) >= 0:
+                majorkey = majorkey.replace("_" + parses[0].localize, "")
+                pychunk[0] = pychunk[0].replace("_" + parses[0].localize, "")
+            if not is_localize(majorkey):
+                pychunks.append(majorkey + ":{" + ", ".join(pychunk) + "}")
         elif len(pychunk) > 0:  # 列表比如{1,2,3}
             pychunks.append(",".join(pychunk))
         row1 = newrow2
