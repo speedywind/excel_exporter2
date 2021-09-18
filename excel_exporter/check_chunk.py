@@ -214,13 +214,16 @@ number_pattern = re.compile(r'^[-+]?[-0-9]\d*\.\d*|[-+]?\.?[0-9]\d*$')
 int_pattern = re.compile(r'^[-+]?[-0-9]\d*$')
 
 
-def CheckInt(data, args=None):
+def CheckInt(data, args=None, localize=None):
     if data == None:
         assert args != "key", "Error[主键不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         assert args != None, "Error[字段不能为空]: near " + sheetname + \
             filename + "(" + GetColNum(mycol) + str(myrow + 1) + ")"
         return args
+
+    if localize:
+        return data
     assert int_pattern.match(data), "Error[非法的整型]: found {} near {} {} ({}{})".format(
         data, sheetname, filename, GetColNum(mycol), str(myrow))
     return data
@@ -343,7 +346,7 @@ def CheckChunk(parses, sheet, row1, row2, col):
                 pychunk.append("\"" + key + "\":" + parse.default)
                 continue
             elif parse.func == TInt:
-                val = CheckInt(field, parse.default)
+                val = CheckInt(field, parse.default, hasattr(parses[0],"localize") and parses[0].localize)
                 pychunk.append(key and "\"" + key + "\":" + val or val)
                 if parse.default == "key":
                     assert not majorkey, "Error[重复的主键]: near " + sheetname + \
