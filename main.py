@@ -33,9 +33,12 @@ def run(args):
     if args.workbooks:
         exporter.export(args.workbooks, check_config)
 
+    localize = {"zh_cn", "zh_tw"}
+    if args.localize:
+        localize = {args.localize}
     if args.directory:
         exporter.export([os.path.join(args.directory, filename)
-                         for filename in os.listdir(args.directory)], check_config)
+                         for filename in os.listdir(args.directory)], check_config, localize)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -50,6 +53,7 @@ def main():
     parser.add_argument('-o', '--output', help='output directory')
     parser.add_argument('-v', '--verbosity', action="count",
                         help="increase output verbosity")
+    parser.add_argument('-l', '--localize', help="zh_cn/zh_tw")
     args = parser.parse_args()
 
     run(args)

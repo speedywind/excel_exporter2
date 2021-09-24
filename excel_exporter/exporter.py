@@ -80,10 +80,10 @@ def save_to_file(target, filename, file_type, txt):
         f.write(txt)
 
 
-def export_workbook(workbook_path, check_config):
+def export_workbook(workbook_path, check_config, localizes):
     info("Reading " + workbook_path)
     workbook = xlrd.open_workbook(workbook_path)
-    for localize, flag0 in config['localize'].items():
+    for localize in localizes:
         for target, types in config['target'].items():
             ast = ""
             keys_num = 0
@@ -152,9 +152,9 @@ def export_workbook(workbook_path, check_config):
                 keys_num = 0
 
 
-def export(wb_paths, check_config):
+def export(wb_paths, check_config, localizes):
     # 生成对应目录
-    for localize, flag0 in config['localize'].items():
+    for localize in localizes:
         for target, types in config['target'].items():
             for file_type in types['output']:
                 os.makedirs(os.path.join(output_path, target+"_"+localize, file_type), exist_ok=True)
@@ -164,4 +164,4 @@ def export(wb_paths, check_config):
         extname = os.path.splitext(basename)[-1]
         if not basename.startswith('~$'):
             if extname == '.xls' or extname == '.xlsx':
-                export_workbook(wb_path, check_config)
+                export_workbook(wb_path, check_config, localizes)
