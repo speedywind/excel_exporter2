@@ -133,7 +133,7 @@ def export_workbook(workbook_path, check_config):
                     ast += ","
                     continue
                 ast = FormatSheet(ast)
-                # assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
+                assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
                 result = {}
                 # 在此进行文件内容的校验并导出
                 for file_type in types['output']:
