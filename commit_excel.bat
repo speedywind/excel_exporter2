@@ -49,9 +49,7 @@ if exist output/password (
 set /p message=请输入本次的提交信息:
 echo 更新所有仓库
 echo update output\configuration
-if exist output\configuration if not exist output\configuration\.git (
-	DEL /F /Q output\configuration
-)
+if not exist output\configuration\.git (	rmdir /s /q output\configuration)
 if not exist output\configuration (
 	git lfs install
 	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/excel_origin.git output\configuration
@@ -62,12 +60,9 @@ git clean -df
 git fetch
 git reset origin/develop --hard
 git submodule update
-cd ../..
 
 echo update output\client_zh_cn\lua
-if exist output\client_zh_cn\lua if not exist output\client_zh_cn\lua\.git (
-	DEL /F /Q output\client_zh_cn\lua
-)
+if not exist output\client_zh_cn\lua\.git (	rmdir /s /q output\client_zh_cn\lua)
 if not exist output\client_zh_cn\lua (
 	git lfs install
 	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_cn\lua
@@ -80,9 +75,7 @@ git reset origin/develop --hard
 cd ../../..
 
 echo update output\server_zh_cn\lua
-if exist output\server_zh_cn\lua if not exist output\server_zh_cn\lua (
-	DEL /F /Q output\server_zh_cn\lua
-)
+if not exist output\server_zh_cn\lua\.git (	rmdir /s /q output\server_zh_cn\lua)
 if not exist output\server_zh_cn\lua (
 	git lfs install
 	git clone -b server https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_cn\lua
@@ -95,9 +88,7 @@ git reset origin/server --hard
 cd ../../..
 
 echo update output\client_zh_tw\lua
-if exist output\client_zh_tw\lua if not exist output\client_zh_tw\lua\.git (
-	DEL /F /Q output\client_zh_tw\lua
-)
+if not exist output\client_zh_tw\lua\.git (rmdir /s /q output\client_zh_tw\lua)
 if not exist output\client_zh_tw\lua (
 	git lfs install
 	git clone -b develop_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_tw\lua
@@ -110,9 +101,7 @@ git reset origin/develop_tw --hard
 cd ../../..
 
 echo update output\server_zh_tw\lua
-if exist output\server_zh_tw\lua if not exist output\server_zh_tw\lua (
-	DEL /F /Q output\server_zh_tw\lua
-)
+if not exist output\server_zh_tw\lua\.git (rmdir /s /q output\server_zh_tw\lua)
 if not exist output\server_zh_tw\lua (
 	git lfs install
 	git clone -b server_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_tw\lua
@@ -124,9 +113,8 @@ git fetch
 git reset origin/server_tw --hard
 cd ../../..
 
-echo 开始导出配置
-copy configuration_tmp\* output\configuration
-python .\main.py -c .\excel_exporter\check_config.json -d .\configuration_tmp\
+copy ..\..\configuration_tmp\* .
+python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json -d ../../configuration_tmp/
 
 echo %errorlevel%
 if %errorlevel% neq 0 (
@@ -134,12 +122,10 @@ if %errorlevel% neq 0 (
   pause
   exit 1
 )
-cd output\configuration
 git add .
 git commit -am "%message%"
 git rev-parse --short HEAD > ../version
 set /P commitid=<../version
-cd ../..
 
 cd output\client_zh_cn\lua
 git add .
@@ -165,10 +151,8 @@ git commit -am "%commitid% %message%"
 git push origin server_tw
 cd ../../..
 
-cd output\configuration
 git push origin develop
-cd ../..
 
-DEL /F /Q configuration_tmp
-echo 同步完成!
+DEL /F /Q ../../configuration_tmp
+echo 完成!
 pause

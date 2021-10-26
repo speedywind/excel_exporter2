@@ -254,6 +254,7 @@ def CheckString(data, args=None):
         else:
             return args
     if isinstance(data, str):
+        data = data.replace("\r", "")
         data = data.replace("\n", "\\n")
         data = data.replace('"', r'\"')
     else:
