@@ -59,7 +59,7 @@ git stash
 git clean -df
 git fetch
 git reset origin/develop --hard
-git submodule update
+git submodule update --init
 
 echo update output\client_zh_cn\lua
 if not exist output\client_zh_cn\lua\.git (	rmdir /s /q output\client_zh_cn\lua)
