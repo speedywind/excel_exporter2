@@ -1,5 +1,5 @@
 call .\.env\Scripts\activate.bat
-python .\main.py -c ^
+python .\main.py  -l zh_cn -c ^
     .\excel_exporter\check_config.json ^
     "\\NAS\Project\Water Gun\产品文档\配置文件"\2.7wg_combination.xlsx ^
 	"\\NAS\Project\Water Gun\产品文档\配置文件"\2.8.1wg_function_gacha.xlsx ^

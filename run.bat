@@ -27,9 +27,9 @@ if not exist output (
 )
 call .\.env\Scripts\activate.bat
 if !hasInput!A NEQ A (
-	python .\main.py -c .\excel_exporter\check_config.json -d .\configuration_tmp\
+	python .\main.py -c .\excel_exporter\check_config.json -d .\configuration_tmp\  -l zh_cn
 ) else (
-	python .\main.py -c .\excel_exporter\check_config.json -d .\configuration\
+	python .\main.py -c .\excel_exporter\check_config.json -d .\configuration\  -l zh_cn
 )
 if exist ..\WaterGun\Assets\LuaFramework\Lua\properties (
 	copy output\client_zh_cn\lua\*.lua ..\WaterGun\Assets\LuaFramework\Lua\properties
