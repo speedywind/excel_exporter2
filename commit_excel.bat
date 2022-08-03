@@ -87,32 +87,6 @@ git fetch
 git reset origin/server --hard
 cd ../../..
 
-echo update output\client_zh_tw\lua
-if not exist output\client_zh_tw\lua\.git (rmdir /s /q output\client_zh_tw\lua)
-if not exist output\client_zh_tw\lua (
-	git lfs install
-	git clone -b develop_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_tw\lua
-)
-cd output\client_zh_tw\lua
-git stash
-git clean -df
-git fetch
-git reset origin/develop_tw --hard
-cd ../../..
-
-echo update output\server_zh_tw\lua
-if not exist output\server_zh_tw\lua\.git (rmdir /s /q output\server_zh_tw\lua)
-if not exist output\server_zh_tw\lua (
-	git lfs install
-	git clone -b server_tw https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_tw\lua
-)
-cd output\server_zh_tw\lua
-git stash
-git clean -df
-git fetch
-git reset origin/server_tw --hard
-cd ../../..
-
 copy ..\..\configuration_tmp\* .
 python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json -d ../../configuration_tmp/
 
@@ -137,18 +111,6 @@ cd output\server_zh_cn\lua
 git add .
 git commit -am "%commitid% %message%"
 git push origin server
-cd ../../..
-
-cd output\client_zh_tw\lua
-git add .
-git commit -am "%commitid% %message%"
-git push origin develop_tw
-cd ../../..
-
-cd output\server_zh_tw\lua
-git add .
-git commit -am "%commitid% %message%"
-git push origin server_tw
 cd ../../..
 
 git push origin develop
