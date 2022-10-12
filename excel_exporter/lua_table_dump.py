@@ -59,16 +59,16 @@ def py_encode_basestring_ascii(s):
         try:
             return ESCAPE_DCT[s]
         except KeyError:
-            # return s  # 停止转义
-            n = ord(s)
-            if n < 0x10000:
-                return '\\u{{{0:04x}}}'.format(n)
-            else:
-                # surrogate pair
-                n -= 0x10000
-                s1 = 0xd800 | ((n >> 10) & 0x3ff)
-                s2 = 0xdc00 | (n & 0x3ff)
-                return '\\u{{{0:04x}}}\\u{{{1:04x}}}'.format(s1, s2)
+            return s  # 停止转义
+            # n = ord(s)
+            # if n < 0x10000:
+            #     return '\\u{{{0:04x}}}'.format(n)
+            # else:
+            #     # surrogate pair
+            #     n -= 0x10000
+            #     s1 = 0xd800 | ((n >> 10) & 0x3ff)
+            #     s2 = 0xdc00 | (n & 0x3ff)
+            #     return '\\u{{{0:04x}}}\\u{{{1:04x}}}'.format(s1, s2)
     return '"' + ESCAPE_ASCII.sub(replace, s) + '"'
 
 
