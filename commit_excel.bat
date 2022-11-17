@@ -4,8 +4,10 @@ cd /d %~dp0
 git pull
 echo %~dp0
 echo %*%
+set group=chichichi
+set branch=develop
 if %1%A == A (
-	set /p file=½«NASÖĞµÄexcelÖ±½ÓÍÏ×§µ½´Ë½Å±¾ÉÏ½øĞĞÌá½»£º
+	set /p file=å°†NASä¸­çš„excelç›´æ¥æ‹–æ‹½åˆ°æ­¤è„šæœ¬ä¸Šè¿›è¡Œæäº¤ï¼š
 )
 if exist configuration_tmp (
 	DEL /F /Q configuration_tmp
@@ -34,7 +36,7 @@ if not exist output (
 if exist output/username (
 	set /P username=<output/username
 ) else (
-	set /p username=µÚÒ»´ÎÆô¶¯ÇëÊäÈëÄãµÄgitÕËºÅ£¬²»ÊÇÓÊÏä£º
+	set /p username=ç¬¬ä¸€æ¬¡å¯åŠ¨è¯·è¾“å…¥ä½ çš„gitè´¦å·ï¼Œä¸æ˜¯é‚®ç®±ï¼š
 	echo !username!
 	echo !username!>output/username
 )
@@ -42,49 +44,49 @@ if exist output/username (
 if exist output/password (
 	set /P password=<output/password
 ) else (
-	set /p password=µÚÒ»´ÎÆô¶¯ÇëÊäÈëÄãµÄgitÃÜÂë£º
+	set /p password=ç¬¬ä¸€æ¬¡å¯åŠ¨è¯·è¾“å…¥ä½ çš„gitå¯†ç ï¼š
 	echo !password!>output/password
 )
 
-set /p message=ÇëÊäÈë±¾´ÎµÄÌá½»ĞÅÏ¢:
-echo ¸üĞÂËùÓĞ²Ö¿â
-echo update output\configuration
-if not exist output\configuration\.git (	rmdir /s /q output\configuration)
-if not exist output\configuration (
+set /p message=è¯·è¾“å…¥æœ¬æ¬¡çš„æäº¤ä¿¡æ¯:
+echo æ›´æ–°æ‰€æœ‰ä»“åº“
+echo update output\!group!_!branch!
+if not exist output\!group!_!branch!\.git (	rmdir /s /q output\!group!_!branch!)
+if not exist output\!group!_!branch! (
 	git lfs install
-	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/excel_origin.git output\configuration
+	git clone -b !branch! https://!username!:!password!@git.fantablade.cn/FantaBlade/!group!/excel_origin.git output\!group!_!branch!
 )
-cd output\configuration
+cd output\!group!_!branch!
 git stash
 git clean -df
 git fetch
-git reset origin/develop --hard
+git reset origin/!branch! --hard
 git submodule update --init
 
 echo update output\client_zh_cn\lua
 if not exist output\client_zh_cn\lua\.git (	rmdir /s /q output\client_zh_cn\lua)
 if not exist output\client_zh_cn\lua (
 	git lfs install
-	git clone -b develop https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\client_zh_cn\lua
+	git clone -b !branch!_client https://!username!:!password!@git.fantablade.cn/FantaBlade/!group!/config_sheets.git output\client_zh_cn\lua
 )
 cd output\client_zh_cn\lua
 git stash
 git clean -df
 git fetch
-git reset origin/develop --hard
+git reset origin/!branch!_client --hard
 cd ../../..
 
 echo update output\server_zh_cn\lua
 if not exist output\server_zh_cn\lua\.git (	rmdir /s /q output\server_zh_cn\lua)
 if not exist output\server_zh_cn\lua (
 	git lfs install
-	git clone -b server https://!username!:!password!@git.fantablade.cn/FantaBlade/WaterGun/config_sheets.git output\server_zh_cn\lua
+	git clone -b !branch!_server https://!username!:!password!@git.fantablade.cn/FantaBlade/!group!/config_sheets.git output\server_zh_cn\lua
 )
 cd output\server_zh_cn\lua
 git stash
 git clean -df
 git fetch
-git reset origin/server --hard
+git reset origin/!branch!_server --hard
 cd ../../..
 
 copy ..\..\configuration_tmp\* .
@@ -92,7 +94,7 @@ python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json
 
 echo %errorlevel%
 if %errorlevel% neq 0 (
-  echo Í¬²½Ê§°Ü!
+  echo åŒæ­¥å¤±è´¥!
   pause
   exit 1
 )
@@ -104,17 +106,17 @@ set /P commitid=<../version
 cd output\client_zh_cn\lua
 git add .
 git commit -am "%commitid% %message%"
-git push origin develop
+git push origin !branch!_client
 cd ../../..
 
 cd output\server_zh_cn\lua
 git add .
 git commit -am "%commitid% %message%"
-git push origin server
+git push origin !branch!_server
 cd ../../..
 
-git push origin develop
+git push origin !branch!
 
 DEL /F /Q ../../configuration_tmp
-echo Íê³É!
+echo å®Œæˆ!
 pause
