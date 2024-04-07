@@ -8,8 +8,9 @@ __version__ = "0.2.0"
 
 import argparse
 import json
+import codecs
 import os
-
+from excel_exporter.config import config
 from excel_exporter import exporter
 from excel_exporter.log import debug, set_debug_mode
 
@@ -33,12 +34,26 @@ def run(args):
     if args.workbooks:
         exporter.export(args.workbooks, check_config)
 
-    localize = {"zh_cn", "zh_tw"}
+    localizes = {"zh_cn", "zh_tw"}
     if args.localize:
-        localize = {args.localize}
-    if args.directory:
+        localizes = {args.localize}
+    if args.json:
+        wb_paths = [os.path.join(args.directory, filename)
+            for filename in os.listdir(args.directory)]
+        for wb_path in wb_paths:
+            basename = os.path.basename(wb_path)
+            extname = os.path.splitext(basename)[-1]
+            if extname == '.json':
+                print(basename)
+                basename = basename.replace(extname, "")
+                with codecs.open(wb_path, "r", "utf-8") as f:
+                    ast = json.loads(f.read())
+                    for localize in localizes:
+                        for target, types in config['target'].items():
+                            exporter.export_sheet(target+"_"+localize, basename, types, ast)
+    elif args.directory:
         exporter.export([os.path.join(args.directory, filename)
-                         for filename in os.listdir(args.directory)], check_config, localize)
+                         for filename in os.listdir(args.directory)], check_config, localizes)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -50,6 +65,7 @@ def main():
     parser.add_argument('-c', '--check_config',
                         help='config for check contents of sheets')
     parser.add_argument('-d', '--directory', help='directory of workbooks')
+    parser.add_argument('-json', '--json', action="count", help='input json')
     parser.add_argument('-o', '--output', help='output directory')
     parser.add_argument('-v', '--verbosity', action="count",
                         help="increase output verbosity")

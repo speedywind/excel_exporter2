@@ -74,6 +74,7 @@ def get_str_line(sheet, row):
 
 
 def save_to_file(target, filename, file_type, txt):
+    os.makedirs(os.path.join(output_path, target, file_type), exist_ok=True)
     file_full_name = os.path.join(
         output_path, target, file_type, "{0}.{1}".format(filename, file_type))
     with codecs.open(file_full_name, "w", "utf-8") as f:
@@ -134,23 +135,25 @@ def export_workbook(workbook_path, check_config, localizes):
                     continue
                 ast = FormatSheet(ast)
                 assert len(ast) == keys_num, "Error[重复的主键]: near " + sheetname
-                result = {}
-                # 在此进行文件内容的校验并导出
-                for file_type in types['output']:
-                    conf = config['outputFileTypes'][file_type]
-                    result[file_type] = conf['convert_func'](ast)
-                    if 'file_structs' in conf:
-                        result[file_type] = conf['file_structs'].format(
-                            filename, result[file_type])
-                    # 格式化
-                    if conf['format'] and conf['format_func']:
-                        format_func = conf['format_func'].__call__
-                        result[file_type] = format_func(result[file_type])
-                    # 保存到文件
-                    save_to_file(target+"_"+localize, filename, file_type, result[file_type])
+                export_sheet(target+"_"+localize, filename, types, ast)
                 ast = ""
                 keys_num = 0
 
+def export_sheet(path, filename, types, ast):
+    result = {}
+    # 在此进行文件内容的校验并导出
+    for file_type in types['output']:
+        conf = config['outputFileTypes'][file_type]
+        result = conf['convert_func'](ast)
+        if 'file_structs' in conf:
+            result = conf['file_structs'].format(
+                filename, result)
+        # 格式化
+        if conf['format'] and conf['format_func']:
+            format_func = conf['format_func'].__call__
+            result = format_func(result)
+        # 保存到文件
+        save_to_file(path, filename, file_type, result)
 
 def export(wb_paths, check_config, localizes):
     # 生成对应目录
