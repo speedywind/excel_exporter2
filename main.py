@@ -37,10 +37,13 @@ def run(args):
     localizes = {"zh_cn", "zh_tw"}
     if args.localize:
         localizes = {args.localize}
-    if args.json:
+    wb_paths = [args.directory]
+    if os.path.isdir(args.directory):
         wb_paths = [os.path.join(args.directory, filename)
             for filename in os.listdir(args.directory)]
+    if args.json:
         for wb_path in wb_paths:
+            print(wb_path)
             basename = os.path.basename(wb_path)
             extname = os.path.splitext(basename)[-1]
             if extname == '.json':
@@ -51,9 +54,8 @@ def run(args):
                     for localize in localizes:
                         for target, types in config['target'].items():
                             exporter.export_sheet(target+"_"+localize, basename, types, ast)
-    elif args.directory:
-        exporter.export([os.path.join(args.directory, filename)
-                         for filename in os.listdir(args.directory)], check_config, localizes)
+    else:
+        exporter.export(wb_paths, check_config, localizes)
 
 def main():
     parser = argparse.ArgumentParser(
