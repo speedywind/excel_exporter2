@@ -95,28 +95,27 @@ python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json
 echo %errorlevel%
 if %errorlevel% neq 0 (
   echo 同步失败!
-  pause
-  exit 1
+) else (
+	git add .
+	git commit -am "%message%"
+	git rev-parse --short HEAD > ../version
+	set /P commitid=<../version
+
+	cd output\client_zh_cn\lua
+	git add .
+	git commit -am "%commitid% %message%"
+	git push origin !branch!_client
+	cd ../../..
+
+	cd output\server_zh_cn\lua
+	git add .
+	git commit -am "%commitid% %message%"
+	git push origin !branch!_server
+	cd ../../..
+
+	git push origin !branch!
+
+	DEL /F /Q ../../configuration_tmp
+	echo 完成!
 )
-git add .
-git commit -am "%message%"
-git rev-parse --short HEAD > ../version
-set /P commitid=<../version
-
-cd output\client_zh_cn\lua
-git add .
-git commit -am "%commitid% %message%"
-git push origin !branch!_client
-cd ../../..
-
-cd output\server_zh_cn\lua
-git add .
-git commit -am "%commitid% %message%"
-git push origin !branch!_server
-cd ../../..
-
-git push origin !branch!
-
-DEL /F /Q ../../configuration_tmp
-echo 完成!
 pause
