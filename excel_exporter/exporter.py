@@ -129,7 +129,7 @@ def export_workbook(workbook_path, check_config, localizes):
                     continue
                 # 根据下一张表的内容判断是否进行导出,下一张表有相同内容时导出到一张表
                 worksheet = sheetx+1 < workbook.nsheets and workbook._sheet_list[sheetx+1] or None
-                if worksheet and (worksheet.nrows <= 3 or filename == worksheet.cell_value(0, 0)):
+                if worksheet and worksheet.nrows > 3 and filename == worksheet.cell_value(0, 0):
                     FormatSheet(ast)
                     ast += ","
                     continue
