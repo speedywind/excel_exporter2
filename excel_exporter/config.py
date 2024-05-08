@@ -21,7 +21,7 @@ config = {
         },
         'all': {
             'flag': 3,
-            'output': {'json'}
+            'output': {'py'}
         },
     },
     'outputFileTypes': {
@@ -33,6 +33,11 @@ config = {
         },
         'json': {
             'convert_func': lambda d: json_dumps(d, indent=2),
+            'format': False,
+            'format_func': None
+        },
+        'py': {
+            'convert_func': lambda d: str(d),
             'format': False,
             'format_func': None
         },
