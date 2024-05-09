@@ -39,7 +39,8 @@ config = {
         'py': {
             'convert_func': lambda d: str(d),
             'format': False,
-            'format_func': None
+            'format_func': None,
+            'file_structs': "{0} = {1}",
         },
         'xml': {
             'convert_func': lambda d: dicttoxml(d).decode('utf-8'),
