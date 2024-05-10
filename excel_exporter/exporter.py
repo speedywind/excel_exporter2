@@ -168,3 +168,15 @@ def export(wb_paths, check_config, localizes):
         if not basename.startswith('~$'):
             if extname == '.xls' or extname == '.xlsx':
                 export_workbook(wb_path, check_config, localizes)
+
+    for localize in localizes:
+        for target, types in config['target'].items():
+            for file_type in types['output']:
+                path = os.path.join(output_path, target+"_"+localize, file_type)
+                files = []
+                for filename in os.listdir(path):
+                    name, extension = os.path.splitext(filename)
+                    if extension == "."+file_type:
+                        files.append(name)
+                export_sheet(target+"_"+localize, "files", types, files)
+
