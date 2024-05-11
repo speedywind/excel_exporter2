@@ -176,7 +176,7 @@ def export(wb_paths, check_config, localizes):
                 files = []
                 for filename in os.listdir(path):
                     name, extension = os.path.splitext(filename)
-                    if extension == "."+file_type:
+                    if extension == "."+file_type and name != "files":
                         files.append(name)
                 export_sheet(target+"_"+localize, "files", types, files)
 
