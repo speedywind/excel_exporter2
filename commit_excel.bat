@@ -7,7 +7,7 @@ echo %*%
 set group=chichichi
 set branch=develop
 if %1%A == A (
-	set /p file=å°†NASä¸­çš„excelç›´æ¥æ‹–æ‹½åˆ°æ­¤è„šæœ¬ä¸Šè¿›è¡Œæäº¤ï¼š
+	set /p file=½«NASÖĞµÄexcelÖ±½ÓÍÏ×§µ½´Ë½Å±¾ÉÏ½øĞĞÌá½»£º
 )
 if exist configuration_tmp (
 	DEL /F /Q configuration_tmp
@@ -36,7 +36,7 @@ if not exist output (
 if exist output/username (
 	set /P username=<output/username
 ) else (
-	set /p username=ç¬¬ä¸€æ¬¡å¯åŠ¨è¯·è¾“å…¥ä½ çš„gitè´¦å·ï¼Œä¸æ˜¯é‚®ç®±ï¼š
+	set /p username=µÚÒ»´ÎÆô¶¯ÇëÊäÈëÄãµÄgitÕËºÅ£¬²»ÊÇÓÊÏä£º
 	echo !username!
 	echo !username!>output/username
 )
@@ -44,12 +44,12 @@ if exist output/username (
 if exist output/password (
 	set /P password=<output/password
 ) else (
-	set /p password=ç¬¬ä¸€æ¬¡å¯åŠ¨è¯·è¾“å…¥ä½ çš„gitå¯†ç ï¼š
+	set /p password=µÚÒ»´ÎÆô¶¯ÇëÊäÈëÄãµÄgitÃÜÂë£º
 	echo !password!>output/password
 )
 
-set /p message=è¯·è¾“å…¥æœ¬æ¬¡çš„æäº¤ä¿¡æ¯:
-echo æ›´æ–°æ‰€æœ‰ä»“åº“
+set /p message=ÇëÊäÈë±¾´ÎµÄÌá½»ĞÅÏ¢:
+echo ¸üĞÂËùÓĞ²Ö¿â
 echo update output\!group!_!branch!
 if not exist output\!group!_!branch!\.git (	rmdir /s /q output\!group!_!branch!)
 if not exist output\!group!_!branch! (
@@ -94,7 +94,7 @@ python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json
 
 echo %errorlevel%
 if %errorlevel% neq 0 (
-  echo åŒæ­¥å¤±è´¥!
+  echo Í¬²½Ê§°Ü!
 ) else (
 	git add .
 	git commit -am "%message%"
@@ -116,6 +116,6 @@ if %errorlevel% neq 0 (
 	git push origin !branch!
 
 	DEL /F /Q ../../configuration_tmp
-	echo å®Œæˆ!
+	echo Íê³É!
 )
 pause
