@@ -89,6 +89,19 @@ git fetch
 git reset origin/!branch!_server --hard
 cd ../../..
 
+echo update output\all_zh_cn\py
+if not exist output\all_zh_cn\py\.git (	rmdir /s /q output\all_zh_cn\py)
+if not exist output\all_zh_cn\py (
+	git lfs install
+	git clone -b !branch!_all https://!username!:!password!@git.fantablade.cn/FantaBlade/!group!/config_sheets.git output\all_zh_cn\py
+)
+cd output\all_zh_cn\py
+git stash
+git clean -df
+git fetch
+git reset origin/!branch!_all --hard
+cd ../../..
+
 copy ..\..\configuration_tmp\* .
 python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json -d ../../configuration_tmp/
 
@@ -111,6 +124,12 @@ if %errorlevel% neq 0 (
 	git add .
 	git commit -am "%commitid% %message%"
 	git push origin !branch!_server
+	cd ../../..
+
+	cd output\all_zh_cn\py
+	git add .
+	git commit -am "%commitid% %message%"
+	git push origin !branch!_all
 	cd ../../..
 
 	git push origin !branch!

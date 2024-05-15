@@ -25,7 +25,7 @@ goto param
 if not exist output (
 	md output
 )
-call .\.env\Scripts\activate.bat
+rem call .\.env\Scripts\activate.bat
 if !hasInput!A NEQ A (
 	python .\main.py -c .\excel_exporter\check_config.json -d .\configuration_tmp\  -l zh_cn
 ) else (
