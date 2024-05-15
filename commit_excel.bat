@@ -103,7 +103,7 @@ git reset origin/!branch!_all --hard
 cd ../../..
 
 copy ..\..\configuration_tmp\* .
-python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json -d ../../configuration_tmp/
+python excel_exporter/main.py -c excel_exporter/excel_exporter/check_config.json -d ../../configuration_tmp/ -l zh_cn
 
 echo %errorlevel%
 if %errorlevel% neq 0 (
