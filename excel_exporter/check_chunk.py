@@ -381,7 +381,8 @@ def CheckChunk(parses, sheet, row1, row2, col):
                     newrow2 = GetNextRow(sheet, row1 + 1, newrow2, col1)
                     col1, py, _ = CheckChunk(parse.args, sheet, row1, newrow2, col1)
                     if parse.args[0].default == "key":
-                        pychunk.append(py)
+                        if not py.startswith("key:"):
+                            pychunk.append(py)
                     elif py:
                         pychunk.append(key and "\"" + key +"\":{" + py + "}" or "{" + py + "}")
             elif parse.func == TList:
