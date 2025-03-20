@@ -5,11 +5,11 @@
 
 ## Example
 
-excel 导出 lua 表
-支持类型: int,bool,float,string,struct<int>,struct<bool>,list<struct>
-特别说明default(仅用于struct): list<struct<int:itemid,default:count=1>>:reward
-特别说明: IsMyInt0 IsMyInt IsMyString中的字段可以不配类型
-特别说明<(<数相同表示同级元素): list<struct<int:hpbar>>:enemy	<list<struct<int:enemyid>>:enemy	string:enemyname	int:count=1	int:lv=0
+excel 导出 lua 表   
+支持类型: int,bool,float,string,struct<int>,struct<bool>,list<struct>   
+特别说明default(仅用于struct): list<struct<int:itemid,default:count=1>>:reward   
+特别说明: IsMyInt0 IsMyInt IsMyString中的字段可以不配类型   
+特别说明<(<数相同表示同级元素): list<struct<int:hpbar>>:enemy	<list<struct<int:enemyid>>:enemy	string:enemyname	int:count=1	int:lv=0   
 导出结构示例: ld_enemy:id=key  name  struct<int:itemid>:cost  struct<int:hpbar=1>:enemygroup  <list<struct<int:itemid>>:lootlist  count  <list<struct<int:id>>:enemy  <<list<struct<int:enemylv=0>>:enemylv
 
 ```txt
